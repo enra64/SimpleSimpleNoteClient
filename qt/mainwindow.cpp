@@ -7,12 +7,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // create a simplenote sync object
-    mSimplenoteSync = new SimplenoteSync(, this);
+    // create a new notehandler object
+    mNoteHandler = new NoteHandler("***REMOVED***", "***REMOVED***", this);
 
-    // connect to the auth signal
-    connect(mSimplenoteSync, SIGNAL(onAuthentication(QNetworkReply::NetworkError)),
-            this, SLOT(onAuthentication(QNetworkReply::NetworkError)));
+    ui->listView->setModel(mNoteHandler->getNoteList());
 }
 
 MainWindow::~MainWindow()
@@ -23,11 +21,10 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     // try to authenticate with the simplenote service
-    mSimplenoteSync->authenticate();
+    mNoteHandler->updateNoteList();
 }
 
 void MainWindow::onAuthentication(QNetworkReply::NetworkError)
 {
-    QString token = mSimplenoteSync->getToken();
-    ui->pushButton->setText(token);
+    ui->pushButton->setText("this was not supposed to happen");
 }

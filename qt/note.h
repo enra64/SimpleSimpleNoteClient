@@ -23,8 +23,9 @@ private:
 public:
     const QVector<QString>& getTags();
     const QVector<QString>& getSystemTags();
-    const QString& getKey();
-    const QString& getContent();
+    const QString& getKey() const;
+    const QString& getContent() const;
+    QString getContent();
     const QDate& getCreateDate();
     const QDate& getModifyDate();
     bool isDeleted();
@@ -33,8 +34,9 @@ public:
     int getSyncnum();
     bool isUpdated();
     void setContent(const QString& newContent);
-    void setTags(const QVector<QString>& newTags);
-    Note (const QString& data);
+    void setTags(const QVector<QString>&);
+    Note (const QString&);
+    Note ();
 };
 
 #endif // NOTE_H

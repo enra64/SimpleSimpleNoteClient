@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "simplenotesync.h"
+#include "notehandler.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,9 +19,10 @@ public:
 private slots:
     void on_pushButton_clicked();
     void onAuthentication(QNetworkReply::NetworkError);
+
 private:
+    NoteHandler* mNoteHandler;
     Ui::MainWindow *ui;
-    SimplenoteSync* mSimplenoteSync;
 };
 
 #endif // MAINWINDOW_H

@@ -3,6 +3,9 @@
 
 #include <QObject>
 #include <QString>
+#include <QJsonArray>
+#include <QJsonObject>
+
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkAccessManager>
@@ -23,6 +26,8 @@ public:
      */
     explicit SimplenoteSync(const QString &user, const QString &password, QObject *parent = 0);
 
+    ~SimplenoteSync();
+
     /**
      * @brief authenticate Get the saved API auth token, or retrieve one from the servers.
      */
@@ -34,13 +39,13 @@ public:
      */
     QString getToken();
 
-    Note getNote(Note& note);
-    Note getNote(const QString& noteId);
-    void updateNote(Note& note);
-    void addNote(Note& note);
+    Note getNote(Note&);
+    Note getNote(const QString&);
+    void updateNote(Note&);
+    void addNote(Note&);
     void getNoteList(void);
-    void deleteNote(Note& note);
-    void trashNote(Note& note);
+    void deleteNote(Note&);
+    void trashNote(Note&);
 
 private:
     QString mUser, mPassword, mToken;
@@ -58,15 +63,36 @@ private:
     /**
      * @brief INDX_URL Index URL constant
      */
-    const QUrl INDEX_URL = QUrl("https://app.simplenote.com/api2/index?");
+    const QString INDEX_URL = "https://app.simplenote.com/api2/index?";
 
     QNetworkAccessManager* mNetworkManager = nullptr;
 
 signals:
+    /**
+     * @brief onAuthentication This signal is emitted after auth request replies have been handled
+     * @param errorCode The error code received with the reply; NoError if reply was ok.
+     */
     void onAuthentication(QNetworkReply::NetworkError errorCode);
 
+    /**
+     * @brief onNoteList This signal is emitted after note list update replies have been handled
+     * @param errorCode The error code received with the reply; NoError if reply was ok.
+     */
+    void onNoteList(QNetworkReply::NetworkError errorCode);
+
 public slots:
+    /**
+     * @brief authenticationRequestFinished This slot is to be connected with finished-signals for authentication requests
+     * @param reply The reply received for the auth request
+     */
     void authenticationRequestFinished(QNetworkReply* reply);
+
+    /**
+     * @brief noteListRequestFinished This slot is to be connected with finished-signals for note list requests
+     * @param reply The reply received for the note list request
+     */
+    void noteListRequestFinished(QNetworkReply* reply);
+
 };
 
 #endif // SIMPLENOTESYNC_H

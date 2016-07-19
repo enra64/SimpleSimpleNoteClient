@@ -71,7 +71,7 @@
                          <object>{93013836-50f0-437e-8b0b-563001717bfc}</object>
                          <name>NoteList</name>
                          <pos>x:500;y:345</pos>
-                         <rect>x:-80;y:-85;w:160;h:170</rect>
+                         <rect>x:-95;y:-85;w:190;h:170</rect>
                          <auto-sized>false</auto-sized>
                          <visual-role>0</visual-role>
                         </DObject>
@@ -141,7 +141,7 @@
                          <object>{38498e0c-0b71-490b-9139-e92506565a20}</object>
                          <name>NoteHandler</name>
                          <pos>x:240;y:290</pos>
-                         <rect>x:-90;y:-65;w:180;h:130</rect>
+                         <rect>x:-90;y:-85;w:180;h:170</rect>
                          <visual-role>6</visual-role>
                         </DObject>
                        </base-DObject>
@@ -680,15 +680,15 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{2c2a7ebc-96f9-4971-9d49-ed9fb0dfb7a4}</uid>
+                    <uid>{8b5d8185-6208-4e09-850b-7caa05ed435a}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
-                    <declaration>QVector&lt;Note&gt; mNoteList</declaration>
+                    <declaration>QMap&lt;QString, Note&gt; mNoteList</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9e4a5aaa-5719-40c2-8acd-362978a0b4cc}</uid>
+                    <uid>{16add109-3484-4fb9-a651-7bf39809cc6d}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>rowCount()</declaration>
@@ -696,7 +696,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{b89e4cff-4874-44cc-841d-0e5146c71112}</uid>
+                    <uid>{170d086d-f6ac-4d66-8ce9-cc4631a7860e}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>data()</declaration>
@@ -704,7 +704,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c1cf768b-47e4-41a5-82dd-fea4c3e5f39f}</uid>
+                    <uid>{bfb4a067-2ee5-4e6e-9b4a-ee0c39b9196b}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>headerData()</declaration>
@@ -955,23 +955,23 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{2de1f8a1-34f7-49a0-a997-187b68990890}</uid>
+                    <uid>{0900b039-1768-416e-847e-ffe7986505fe}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
-                    <declaration>NoteList mNoteList</declaration>
+                    <declaration>NoteList* mNoteList</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{97c63e00-5263-4e3a-b6f3-8303bfac33f4}</uid>
+                    <uid>{ce70a125-1918-4823-9244-f6f6bf533aec}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
-                    <declaration>NetNoteSync mNetSync</declaration>
+                    <declaration>SimplenoteSync* mNetSync</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{494d7e46-2709-4a0b-8f3a-4fdc1a13412c}</uid>
+                    <uid>{75d31a43-9b04-41d0-87f8-a9f953a17379}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>DiskNoteSync mDiskSync</declaration>
@@ -979,10 +979,34 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{4e706245-da9c-4371-88bb-83db16b7bcd5}</uid>
+                    <uid>{4d750d99-b417-4745-9483-9b7b8e5f4d3f}</uid>
+                    <visibility>3</visibility>
+                    <type>2</type>
+                    <declaration>updateNoteListSimplenote()</declaration>
+                   </MClassMember>
+                  </item>
+                  <item>
+                   <MClassMember>
+                    <uid>{d647a198-66a4-49f0-8be2-c83b50e2f198}</uid>
+                    <visibility>3</visibility>
+                    <type>2</type>
+                    <declaration>updateNoteListDisk()</declaration>
+                   </MClassMember>
+                  </item>
+                  <item>
+                   <MClassMember>
+                    <uid>{0c8c2c93-ad1b-4253-a8ec-621e063a42f5}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>updateNote(const Note&amp; note)</declaration>
+                   </MClassMember>
+                  </item>
+                  <item>
+                   <MClassMember>
+                    <uid>{a8b21e98-d4fe-4b16-b567-c8bd6cc1d43f}</uid>
+                    <visibility>1</visibility>
+                    <type>2</type>
+                    <declaration>updateNoteList()</declaration>
                    </MClassMember>
                   </item>
                  </qlist>
