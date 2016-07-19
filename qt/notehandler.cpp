@@ -27,9 +27,12 @@ void NoteHandler::onSimplenoteAuthentication(QNetworkReply::NetworkError)
 
 }
 
-void NoteHandler::onSimplenoteListUpdate(QNetworkReply::NetworkError)
+void NoteHandler::onSimplenoteListUpdate(QNetworkReply::NetworkError err)
 {
+    // todo: somehow achieve intelligent behaviour when fetching the note list. currently a mismatch between the expected
+    // QVECtor<note> and the parsed notelist exists
     // parse note list from simplenote sync thingy
+    mNoteList->updateNoteList(mSimplenoteSync->getFetchedNoteList());
 }
 
 NoteList* NoteHandler::getNoteList()

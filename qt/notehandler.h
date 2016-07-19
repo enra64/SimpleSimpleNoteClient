@@ -17,7 +17,7 @@ signals:
 
 public slots:
     void onSimplenoteAuthentication(QNetworkReply::NetworkError);
-    void onSimplenoteListUpdate(QNetworkReply::NetworkError);
+    void onSimplenoteListUpdate(QNetworkReply::NetworkError err);
 
 public://functions
 

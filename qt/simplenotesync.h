@@ -11,7 +11,9 @@
 #include <QtNetwork/QNetworkAccessManager>
 
 #include <iostream>
+#include <memory>
 
+#include "notelist.h"
 #include "note.h"
 
 class SimplenoteSync : public QObject
@@ -47,8 +49,19 @@ public:
     void deleteNote(Note&);
     void trashNote(Note&);
 
+    std::unique_ptr<NoteList> getFetchedNoteList();
+
 private:
     QString mUser, mPassword, mToken;
+
+    /**
+     * @brief parseJsonToNotelist Parse the received JSON data into a NoteList object
+     * @param json raw JSON data received
+     * @return NoteList with the parsed json data
+     */
+    std::unique_ptr<NoteList> parseJsonToNotelist(QJsonDocument &json);
+
+    std::unique_ptr<NoteList> mCurrentNoteList;
 
     /**
      * @brief AUTH_URL Authentication URL constant

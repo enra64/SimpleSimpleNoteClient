@@ -1,5 +1,6 @@
 #include "simplenotesync.h"
 
+#include <QEventLoop>
 #include <QJsonDocument>
 
 SimplenoteSync::SimplenoteSync(const QString& user, const QString& password, QObject *parent) : QObject(parent) {
@@ -28,11 +29,24 @@ void SimplenoteSync::authenticate() {
     // create a request with the appropriate URL
     QNetworkRequest authRequest(AUTH_URL);
 
+    // create an qt event loop to wait unto the network request
+    QEventLoop synchronizeRequestLoop;
+
     // connect to the finished signal
-    connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(authenticationRequestFinished(QNetworkReply*)));
+    connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)),
+            &synchronizeRequestLoop, SLOT(quit()));
 
     // start the request via POST
-    mNetworkManager->post(authRequest, parameterPostData);
+    QNetworkReply* reply = mNetworkManager->post(authRequest, parameterPostData);
+
+    // start waiting for the reply
+    synchronizeRequestLoop.exec(QEventLoop::ExcludeUserInputEvents);
+
+    // handle the reply
+    authenticationRequestFinished(reply);
+
+    // delete the reply
+    delete reply;
 }
 
 void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply)
@@ -64,13 +78,19 @@ void SimplenoteSync::getNoteList() {
 
 void SimplenoteSync::noteListRequestFinished(QNetworkReply *reply)
 {
-    QJsonDocument data;
     // check whether any errors occured
     if(reply->error() != QNetworkReply::NoError){
-        QString replyData = reply->readAll();
-        data = QJsonDocument::fromJson(reply->readAll());
+        // create json document form response
+        QJsonDocument data = QJsonDocument::fromJson(reply->readAll());
+        mCurrentNoteList = parseJsonToNotelist(data);
     }
     onNoteList(reply->error());
+}
+
+std::unique_ptr<NoteList> SimplenoteSync::parseJsonToNotelist(QJsonDocument& json)
+{
+    QVector<Note> noteList;
+    QJsonObject test = json.object();
 }
 
 QString SimplenoteSync::getToken()
@@ -106,4 +126,9 @@ void SimplenoteSync::deleteNote(Note &) {
 
 void SimplenoteSync::trashNote(Note &) {
 
+}
+
+std::unique_ptr<NoteList> SimplenoteSync::getFetchedNoteList()
+{
+    return std::move(mCurrentNoteList);
 }
