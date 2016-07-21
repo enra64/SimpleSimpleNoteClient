@@ -16,13 +16,11 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     note.cpp \
     simplenotesync.cpp \
-    notehandler.cpp \
     notelist.cpp
 
 HEADERS  += mainwindow.h \
     note.h \
     simplenotesync.h \
-    notehandler.h \
     notelist.h
 
 FORMS    += mainwindow.ui

@@ -13,7 +13,6 @@
 #include <iostream>
 #include <memory>
 
-#include "notelist.h"
 #include "note.h"
 
 class SimplenoteSync : public QObject
@@ -67,7 +66,7 @@ private:
     /**
      * @brief DATA_URL Data URL constant
      */
-    const QString DATA_URL = "https://app.simplenote.com/api2/data";
+    const QString DATA_URL = "https://app.simplenote.com/api2/data/";
 
     /**
      * @brief INDX_URL Index URL constant

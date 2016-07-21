@@ -8,9 +8,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // create a new notehandler object
-    mNoteHandler = new NoteHandler("***REMOVED***", "***REMOVED***", this);
+    mNoteList = new NoteList("***REMOVED***", "***REMOVED***", this);
 
-    ui->listView->setModel(mNoteHandler->getNoteList());
+    ui->listView->setModel(mNoteList);
+
+    ui->listView->connect(ui->listView, SIGNAL(clicked(QModelIndex)), mNoteList, SLOT(onNoteClicked(QModelIndex)));
 }
 
 MainWindow::~MainWindow()
@@ -21,7 +23,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     // try to authenticate with the simplenote service
-    mNoteHandler->updateNoteList();
+    mNoteList->updateNoteList();
 }
 
 void MainWindow::onAuthentication(QNetworkReply::NetworkError)

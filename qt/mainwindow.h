@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "notehandler.h"
+#include "notelist.h"
 
 namespace Ui {
 class MainWindow;
@@ -21,7 +21,7 @@ private slots:
     void onAuthentication(QNetworkReply::NetworkError);
 
 private:
-    NoteHandler* mNoteHandler;
+    NoteList* mNoteList;
     Ui::MainWindow *ui;
 };
 

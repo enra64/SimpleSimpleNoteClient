@@ -33,7 +33,7 @@ except ImportError:
         # For Google AppEngine
         from django.utils import simplejson as json
         
-response = urllib2.urlopen("https://app.simplenote.com/api2/index?auth=D45F9AC2493DE08C68C9C79A90570E735688EEC7C96390EF4C7882DC58F047F7&email=***REMOVED***&length=100")
+response = urllib2.urlopen("https://app.simplenote.com/api2/data/1e7ac2ccc07042ae707a495ea2abd659?auth=D45F9AC2493DE08C68C9C79A90570E735688EEC7C96390EF4C7882DC58F047F7&email=***REMOVED***")
 print(response.info())
 print(response.geturl())
 print(response.read().decode('utf-8'))

@@ -44,9 +44,6 @@ void SimplenoteSync::authenticate() {
 
     // handle the reply
     authenticationRequestFinished(reply);
-
-    // delete the reply?
-    //delete reply;
 }
 
 void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply) {
@@ -61,6 +58,9 @@ void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply) {
     // send a status signal
     onAuthentication(reply->error());
     std::cout << "auth finished: " << reply->isFinished() << "open?:" << reply->isOpen() << std::endl;
+
+    // clean up
+    reply->deleteLater();
 }
 
 void SimplenoteSync::getNote(const QString& key) {
@@ -73,6 +73,8 @@ void SimplenoteSync::getNote(const QString& key) {
     // connect to the finished signal
     connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
 
+    std::cout << postString.toStdString() << std::endl;
+
     // start the request via GET
     mNetworkManager->get(listRequest);
 }
@@ -81,12 +83,21 @@ void SimplenoteSync::noteRequestFinished(QNetworkReply *reply)
 {
     // check whether any errors occured
     if(reply->error() == QNetworkReply::NoError) {
+        std::cout << reply->isFinished() << reply->isOpen() << std::endl;
+
         // create json object from response
         QJsonObject data = QJsonDocument::fromJson(reply->readAll()).object();
+
         // parse json data
-        onNote(reply->error(), new Note(QString()));
+        onNote(reply->error(), data.empty() ? nullptr : new Note(data));
     } else
         onNote(reply->error(), nullptr);
+
+    // disconnect the finish signal to avoid double-reading
+    disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
+
+    // clean up
+    reply->deleteLater();
 }
 
 void SimplenoteSync::getNoteList() {
@@ -112,6 +123,12 @@ void SimplenoteSync::noteListRequestFinished(QNetworkReply *reply) {
         onNoteList(reply->error(), parseJsonToNotelist(data));
     } else
         onNoteList(reply->error(), nullptr);
+
+    // disconnect the finish signal to avoid double-reading
+    disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteListRequestFinished(QNetworkReply*)));
+
+    // clean up
+    reply->deleteLater();
 }
 
 QVector<Note*>* SimplenoteSync::parseJsonToNotelist(const QJsonObject& json) {

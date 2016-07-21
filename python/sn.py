@@ -125,6 +125,8 @@ class Simplenote(object):
             return e, -1
         except IOError as e:
             return e, -1
+        print(response.url)
+        print(response.info())
         note = json.loads(response.read().decode('utf-8'))
         note = self.__encode(note)
         return note, 0

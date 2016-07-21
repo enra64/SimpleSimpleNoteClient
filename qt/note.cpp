@@ -110,4 +110,6 @@ Note::Note(const QJsonValue &val)
 
     // these are the contents with calling getNote
     mContentFetched = t.value("content") != QJsonValue::Undefined;
+    if(mContentFetched)
+        mContent = t.value("content").toString();
 }
