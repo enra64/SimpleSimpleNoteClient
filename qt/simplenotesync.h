@@ -41,15 +41,13 @@ public:
      */
     QString getToken();
 
-    Note getNote(Note&);
-    Note getNote(const QString&);
+    void getNote(const Note &n);
+    void getNote(const QString&key);
     void updateNote(Note&);
     void addNote(Note&);
     void getNoteList(void);
     void deleteNote(Note&);
     void trashNote(Note&);
-
-    std::unique_ptr<NoteList> getFetchedNoteList();
 
 private:
     QString mUser, mPassword, mToken;
@@ -59,9 +57,7 @@ private:
      * @param json raw JSON data received
      * @return NoteList with the parsed json data
      */
-    std::unique_ptr<NoteList> parseJsonToNotelist(QJsonDocument &json);
-
-    std::unique_ptr<NoteList> mCurrentNoteList;
+    QVector<Note*>* parseJsonToNotelist(const QJsonObject &json);
 
     /**
      * @brief AUTH_URL Authentication URL constant
@@ -71,7 +67,7 @@ private:
     /**
      * @brief DATA_URL Data URL constant
      */
-    const QUrl DATA_URL = QUrl("https://app.simplenote.com/api2/data");
+    const QString DATA_URL = "https://app.simplenote.com/api2/data";
 
     /**
      * @brief INDX_URL Index URL constant
@@ -90,8 +86,16 @@ signals:
     /**
      * @brief onNoteList This signal is emitted after note list update replies have been handled
      * @param errorCode The error code received with the reply; NoError if reply was ok.
+     * @param noteList The list of notes received.
      */
-    void onNoteList(QNetworkReply::NetworkError errorCode);
+    void onNoteList(QNetworkReply::NetworkError errorCode, QVector<Note*>* noteList);
+
+    /**
+     * @brief onNoteList This signal is emitted after note get replies have been handled
+     * @param errorCode The error code received with the reply; NoError if reply was ok.
+     * @param noteList The note received.
+     */
+    void onNote(QNetworkReply::NetworkError errorCode, Note* note);
 
 public slots:
     /**
@@ -105,6 +109,12 @@ public slots:
      * @param reply The reply received for the note list request
      */
     void noteListRequestFinished(QNetworkReply* reply);
+
+    /**
+     * @brief noteListRequestFinished This slot is to be connected with finished-signals for note requests
+     * @param reply The reply received for the note request
+     */
+    void noteRequestFinished(QNetworkReply* reply);
 
 };
 

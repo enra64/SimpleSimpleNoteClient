@@ -11,12 +11,12 @@ SimplenoteSync::SimplenoteSync(const QString& user, const QString& password, QOb
     mNetworkManager = new QNetworkAccessManager(this);
 }
 
-SimplenoteSync::~SimplenoteSync()
-{
+SimplenoteSync::~SimplenoteSync() {
     delete mNetworkManager;
 }
 
 void SimplenoteSync::authenticate() {
+    mToken = "D45F9AC2493DE08C68C9C79A90570E735688EEC7C96390EF4C7882DC58F047F7";
     if(!mToken.isEmpty())
         return;
 
@@ -45,12 +45,11 @@ void SimplenoteSync::authenticate() {
     // handle the reply
     authenticationRequestFinished(reply);
 
-    // delete the reply
-    delete reply;
+    // delete the reply?
+    //delete reply;
 }
 
-void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply)
-{
+void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply) {
     // check whether any errors occured
     if(reply->error() != QNetworkReply::NoError)
         // invalidate the token
@@ -61,12 +60,40 @@ void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply)
 
     // send a status signal
     onAuthentication(reply->error());
+    std::cout << "auth finished: " << reply->isFinished() << "open?:" << reply->isOpen() << std::endl;
+}
+
+void SimplenoteSync::getNote(const QString& key) {
+    // create url data string
+    QString postString = QString("%1?auth=%2&email=%3").arg(key, getToken(), mUser);
+
+    // create a request from that
+    QNetworkRequest listRequest(postString.prepend(DATA_URL));
+
+    // connect to the finished signal
+    connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
+
+    // start the request via GET
+    mNetworkManager->get(listRequest);
+}
+
+void SimplenoteSync::noteRequestFinished(QNetworkReply *reply)
+{
+    // check whether any errors occured
+    if(reply->error() == QNetworkReply::NoError) {
+        // create json object from response
+        QJsonObject data = QJsonDocument::fromJson(reply->readAll()).object();
+        // parse json data
+        onNote(reply->error(), new Note(QString()));
+    } else
+        onNote(reply->error(), nullptr);
 }
 
 void SimplenoteSync::getNoteList() {
-    // create post data string
+    // create url data string
     QString postString = QString("auth=%1&email=%2&length=100").arg(getToken(), mUser);
 
+    // create a request from that
     QNetworkRequest listRequest(postString.prepend(INDEX_URL));
 
     // connect to the finished signal
@@ -76,25 +103,33 @@ void SimplenoteSync::getNoteList() {
     mNetworkManager->get(listRequest);
 }
 
-void SimplenoteSync::noteListRequestFinished(QNetworkReply *reply)
-{
+void SimplenoteSync::noteListRequestFinished(QNetworkReply *reply) {
     // check whether any errors occured
-    if(reply->error() != QNetworkReply::NoError){
-        // create json document form response
-        QJsonDocument data = QJsonDocument::fromJson(reply->readAll());
-        mCurrentNoteList = parseJsonToNotelist(data);
-    }
-    onNoteList(reply->error());
+    if(reply->error() == QNetworkReply::NoError) {
+        // create json object from response
+        QJsonObject data = QJsonDocument::fromJson(reply->readAll()).object();
+        // parse json data
+        onNoteList(reply->error(), parseJsonToNotelist(data));
+    } else
+        onNoteList(reply->error(), nullptr);
 }
 
-std::unique_ptr<NoteList> SimplenoteSync::parseJsonToNotelist(QJsonDocument& json)
-{
-    QVector<Note> noteList;
-    QJsonObject test = json.object();
+QVector<Note*>* SimplenoteSync::parseJsonToNotelist(const QJsonObject& json) {
+    // initialise result data vector
+    QVector<Note*>* noteVector = new QVector<Note*>();
+
+    // access data array within json
+    QJsonArray notes = json.value("data").toArray();
+
+    // create a note object for each data array element
+    for(int i = 0; i < notes.size(); i++)
+        noteVector->push_back(new Note(notes.at(i)));
+
+    // return result
+    return noteVector;
 }
 
-QString SimplenoteSync::getToken()
-{
+QString SimplenoteSync::getToken() {
     // call authenticate to request a token if none exists
     authenticate();
 
@@ -102,12 +137,8 @@ QString SimplenoteSync::getToken()
     return mToken;
 }
 
-Note SimplenoteSync::getNote(Note &) {
-    return Note("invalid");
-}
-
-Note SimplenoteSync::getNote(const QString &) {
-    return Note("invalid");
+void SimplenoteSync::getNote(const Note & n) {
+    getNote(n.getKey());
 }
 
 void SimplenoteSync::updateNote(Note &) {
@@ -118,17 +149,10 @@ void SimplenoteSync::addNote(Note &) {
 
 }
 
-
-
 void SimplenoteSync::deleteNote(Note &) {
 
 }
 
 void SimplenoteSync::trashNote(Note &) {
 
-}
-
-std::unique_ptr<NoteList> SimplenoteSync::getFetchedNoteList()
-{
-    return std::move(mCurrentNoteList);
 }

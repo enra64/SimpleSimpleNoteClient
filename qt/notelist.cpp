@@ -5,12 +5,12 @@ NoteList::NoteList(QObject* parent) : QAbstractListModel(parent)
 
 }
 
-void NoteList::updateNoteList(const QVector<Note> &updatedList)
+void NoteList::updateNoteList(QVector<Note*>* updatedList)
 {
     // for each note in the updated list, check whether we already have a (newer) version.
-    for(auto it = updatedList.begin(); it != updatedList.end(); it++){
+    for(auto it = updatedList->begin(); it != updatedList->end(); it++){
         // save the current note key for lambda capture
-        const QString& currentNoteKey = it->getKey();
+        const QString& currentNoteKey = (*it)->getKey();
 
         // check whether a note with this key exists
         auto result = std::find_if(mNoteList.begin(), mNoteList.end(), [currentNoteKey] (Note a) -> bool { return a.getKey() == currentNoteKey; });
@@ -20,7 +20,7 @@ void NoteList::updateNoteList(const QVector<Note> &updatedList)
             // notify the list of our plan
             beginInsertRows(QModelIndex(), mNoteList.size(), mNoteList.size() + 1);
             // add note
-            mNoteList.push_back(*it);
+            mNoteList.push_back(**it);
             // add process finished
             endInsertRows();
         }
@@ -29,6 +29,7 @@ void NoteList::updateNoteList(const QVector<Note> &updatedList)
 
         }
     }
+    delete updatedList;
 }
 
 
@@ -47,6 +48,11 @@ QVariant NoteList::data(const QModelIndex &index, int role) const
 
     if(role != Qt::DisplayRole)
         return QVariant();
+
+    const Note& at = mNoteList.at(index.row());
+
+    if(!at.contentHasBeenFetched())
+        return "content not fetched";
 
     return mNoteList.at(index.row()).getContent();
 }

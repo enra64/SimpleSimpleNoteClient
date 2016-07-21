@@ -18,7 +18,7 @@ public://functions
      * @brief updateNoteList iterate through the list, checking whether we should update anything
      * @param updatedList the updated list
      */
-    void updateNoteList(const QVector<Note>& updatedList);
+    void updateNoteList(QVector<Note*>* updatedList);
 
     // QAbstractItemModel interface
 public:

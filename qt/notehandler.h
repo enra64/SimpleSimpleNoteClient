@@ -16,8 +16,16 @@ public:
 signals:
 
 public slots:
+    /**
+     * @brief onSimplenoteAuthentication This slot is for the "auth request finished"-signal from the simplenote adapter
+     */
     void onSimplenoteAuthentication(QNetworkReply::NetworkError);
-    void onSimplenoteListUpdate(QNetworkReply::NetworkError err);
+
+    /**
+     * @brief onSimplenoteListUpdate This slot is for the "list request finished"-signal from the simplenote adapter
+     * @param noteList the list of notes, to be deleted by the receiver.
+     */
+    void onSimplenoteListUpdate(QNetworkReply::NetworkError, QVector<Note *> *noteList);
 
 public://functions
 
