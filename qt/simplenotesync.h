@@ -43,7 +43,7 @@ public:
     void getNote(const Note &n);
     void getNote(const QString&key);
     void updateNote(const Note &n);
-    void addNote(Note&);
+    void addNote(Note&n);
     void getNoteList(void);
     void deleteNote(Note&);
     void trashNote(Note&);

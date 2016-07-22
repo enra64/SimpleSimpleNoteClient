@@ -122,17 +122,26 @@ void SimplenoteSync::updateNote(const Note& n) {
     // connect to the finished signal
     connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(updateNoteRequestFinished(QNetworkReply*)));
 
-    // start request
-    // TODO it seems that i and one of these functions have different ideas about encoding.
-    QByteArray dump = noteCopy.jsonDump();
-    std::cout << dump.toStdString() << std::endl;
-    mNetworkManager->post(QNetworkRequest(url), dump);
+    // create request
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    // get note JSON dump
+    QByteArray json = noteCopy.jsonDump(true).replace('\n', QByteArray());
+
+    std::cout << "request" << json.toStdString() << std::endl;
+
+    //request = QNetworkRequest(QUrl("https://app.simplenote.com/api2/data?auth=D45F9AC2493DE08C68C9C79A90570E735688EEC7C96390EF4C7882DC58F047F7&email=***REMOVED***"));
+    //json = "{\"content\": \"Second Note.\", \"tags\": [\"tag1\", \"tag2\"]}";
+
+    mNetworkManager->post(request, json);
 }
 
 void SimplenoteSync::updateNoteRequestFinished(QNetworkReply *reply)
 {
     //
-    noteRequestFinished(reply);
+    //noteRequestFinished(reply);
+    std::cout << "reply" << reply->readAll().toStdString() << "fin:" << reply->isFinished() << "open" << reply->isOpen() << std::endl;
 
     // disconnect the finish signal to avoid double-reading
     disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(updateNoteRequestFinished(QNetworkReply*)));
@@ -200,8 +209,10 @@ void SimplenoteSync::getNote(const Note & n) {
     getNote(n.getKey());
 }
 
-void SimplenoteSync::addNote(Note &) {
-
+void SimplenoteSync::addNote(Note& n) {
+    Note noteCopy(n);
+    noteCopy.deleteKey();
+    updateNote(noteCopy);
 }
 
 void SimplenoteSync::deleteNote(Note &) {

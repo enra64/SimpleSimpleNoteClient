@@ -80,23 +80,43 @@ void Note::setModifyDate(const QDateTime &timestamp) {
     mModifyDate = timestamp;
 }
 
-QByteArray Note::jsonDump() const {
-    QJsonObject dump;
-    dump.insert("deleted", QJsonValue(mIsDeleted));
-    dump.insert("createdate", QJsonValue(mCreateDate.toString()));
-    dump.insert("content", QJsonValue(mContent));
-    dump.insert("version", QJsonValue(mVersion));
-    dump.insert("systemtags", parseVectorToJson(mSystemTags));
-    dump.insert("key", QJsonValue(mKey));
-    dump.insert("tags", parseVectorToJson(mTags));
-    dump.insert("minversion", QJsonValue(mMinVersion));
-    dump.insert("modifydate", QJsonValue(mModifyDate.toString()));
-    dump.insert("syncnum", QJsonValue(mSyncnum));
-    return QJsonDocument(dump).toBinaryData();
+QByteArray Note::jsonDump(bool updateModificationTimestamp) const {
+    // outer layer array
+    QJsonArray dataWrapper;
+
+    // inner data object
+    QJsonObject data;
+    data.insert("deleted", QJsonValue(mIsDeleted ? 1 : 0));// need int representation for bool
+    data.insert("createdate", QJsonValue(QString::number(mCreateDate.toTime_t()).append(".719370")));// unix timestamp + wild guess about what sn wants
+    data.insert("content", QJsonValue(mContent));
+    data.insert("version", QJsonValue(9));
+    data.insert("systemtags", parseVectorToJson(mSystemTags));
+    data.insert("key", QJsonValue(mKey));
+    data.insert("tags", parseVectorToJson(mTags));
+    data.insert("minversion", QJsonValue(mMinVersion));
+    if(updateModificationTimestamp)
+        data.insert("modifydate", QJsonValue(QString::number(QDateTime::currentDateTimeUtc().toTime_t()).append(".719370")));// current unix timestamp + wild guess about what sn wants
+    else
+        data.insert("modifydate", QJsonValue(QString::number(mModifyDate.toTime_t()).append(".719370")));// unix timestamp + wild guess about what sn wants
+    data.insert("syncnum", QJsonValue(mSyncnum));
+
+    // insert data object
+    dataWrapper.append(data);
+
+    // insert magic number (?)
+    dataWrapper.append(QJsonValue((int) 1));
+
+    // return as plaintext json
+    return QJsonDocument(data).toJson();
 }
 
 bool Note::contentHasBeenFetched() const {
     return mContentFetched;
+}
+
+void Note::deleteKey()
+{
+    mKey = "";
 }
 
 Note::Note(const QString &) {

@@ -49,8 +49,13 @@ public://setter
     void setModifyDate(const QDateTime& timestamp);
 
 public://other
-    QByteArray jsonDump() const;
+    QByteArray jsonDump(bool updateModificationTimestamp) const;
     bool contentHasBeenFetched() const;
+
+    /**
+     * @brief deleteKey sets the key to an empty string, so the note will be handled as a new note
+     */
+    void deleteKey();
     Note (const QString&);
     Note ();
     Note (const QJsonValue& val);

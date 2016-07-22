@@ -157,6 +157,9 @@ class Simplenote(object):
         else:
             url = '{0}?auth={1}&email={2}'.format(DATA_URL, self.get_token(), self.username)
         request = Request(url, urllib.quote(json.dumps(note)).encode('utf-8'))
+        
+        print("update url" + url)
+        print("update json\n" + json.dumps(note))
         response = ""
         try:
             response = urllib2.urlopen(request)
