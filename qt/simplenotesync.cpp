@@ -3,6 +3,8 @@
 #include <QEventLoop>
 #include <QJsonDocument>
 
+#include <assert.h>
+
 SimplenoteSync::SimplenoteSync(const QString& user, const QString& password, QObject *parent) : QObject(parent) {
     mUser = user;
     mPassword = password;
@@ -17,6 +19,8 @@ SimplenoteSync::~SimplenoteSync() {
 
 void SimplenoteSync::authenticate() {
     mToken = "D45F9AC2493DE08C68C9C79A90570E735688EEC7C96390EF4C7882DC58F047F7";
+
+    // abort if token exists
     if(!mToken.isEmpty())
         return;
 
@@ -62,7 +66,7 @@ void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply) {
     reply->deleteLater();
 }
 
-void SimplenoteSync::getNote(const QString& key) {
+void SimplenoteSync::fetchNote(const QString& key) {
     // create url data string
     QString postString = QString("/%1?auth=%2&email=%3").arg(key, getToken(), mUser);
 
@@ -72,7 +76,7 @@ void SimplenoteSync::getNote(const QString& key) {
     // connect to the finished signal
     connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
 
-    std::cout << postString.toStdString() << std::endl;
+    //std::cout << postString.toStdString() << std::endl;
 
     // start the request via GET
     mNetworkManager->get(listRequest);
@@ -148,7 +152,7 @@ void SimplenoteSync::updateNoteRequestFinished(QNetworkReply *reply)
     reply->deleteLater();
 }
 
-void SimplenoteSync::getNoteList() {
+void SimplenoteSync::fetchNoteList() {
     // create url data string
     QString getString = QString("auth=%1&email=%2&length=100").arg(getToken(), mUser);
 
@@ -202,21 +206,39 @@ QString SimplenoteSync::getToken() {
     return mToken;
 }
 
-void SimplenoteSync::getNote(const Note & n) {
+void SimplenoteSync::fetchNote(const Note & n) {
+    // confirm that the note has a key
+    assert(!n.getKey().isEmpty());
+
     // call overload
-    getNote(n.getKey());
+    fetchNote(n.getKey());
 }
 
-void SimplenoteSync::addNote(Note& n) {
-    Note noteCopy(n);
-    noteCopy.deleteKey();
-    updateNote(noteCopy);
+void SimplenoteSync::addNote(const Note& n) {
+    // confirm that this is a new note
+    assert(n.isNewNote());
+    // call update - without a key, this will add the note
+    updateNote(n);
 }
 
-void SimplenoteSync::deleteNote(Note &) {
+void SimplenoteSync::deleteNote(const Note &note) {
+    // create url data string
+    QString dataString = QString("/%1?auth=%2&email=%3").arg(note.getKey(), getToken(), mUser);
 
+    // create a request from that
+    QNetworkRequest deleteRequest(dataString.prepend(DATA_URL));
+
+    // connect to the finished signal
+    connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteDeleteFinished(QNetworkReply*)));
+
+    // use HTTP DELETE to delete the note
+    mNetworkManager->deleteResource(deleteRequest);
 }
 
-void SimplenoteSync::trashNote(Note &) {
+void SimplenoteSync::trashNote(Note& note, bool trash = true) {
+    // set trash flag
+    note.setDeleted(trash);
 
+    // update server data
+    updateNote(note);
 }

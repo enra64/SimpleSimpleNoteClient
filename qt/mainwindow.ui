@@ -55,6 +55,7 @@
      <string>Note</string>
     </property>
     <addaction name="actionSync_up"/>
+    <addaction name="actionDelete"/>
    </widget>
    <addaction name="menuNote"/>
   </widget>
@@ -73,6 +74,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="text">
+    <string>Trash</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
  </widget>

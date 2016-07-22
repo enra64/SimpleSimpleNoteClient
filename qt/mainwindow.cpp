@@ -11,16 +11,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->listView->setModel(mNoteList);
 
-    // listen to click signals
+    // listen to click signals on note list
     connect(ui->listView, SIGNAL(clicked(QModelIndex)),
             mNoteList, SLOT(onNoteClicked(QModelIndex)));
 
     // listen to note fetch ok signals
     connect(mNoteList, SIGNAL(noteFetched(const Note&)),
             this, SLOT(onNoteFetched(const Note&)));
+
+    // enable the trash toggle
+    ui->mainToolBar->addAction("Toggle trash view", mNoteList, SLOT(onToggleTrash(bool)));
 }
-
-
 
 MainWindow::~MainWindow() {
     delete ui;
@@ -43,7 +44,14 @@ void MainWindow::onNoteFetched(const Note &note)
 
 void MainWindow::on_actionSync_up_triggered()
 {
-    mCurrentEditNote->setContent(ui->textBrowser->toPlainText());
-    if(mCurrentEditNote)
+    if(mCurrentEditNote){
+        mCurrentEditNote->setContent(ui->textBrowser->toPlainText());
         mNoteList->updateNote(*mCurrentEditNote);
+    }
+}
+
+void MainWindow::on_actionDelete_triggered()
+{
+    if(mCurrentEditNote)
+        mNoteList->trashNote(*mCurrentEditNote);
 }

@@ -30,16 +30,23 @@ NoteList::NoteList(const QString &user, const QString &password, QObject* parent
  */
 
 void NoteList::fetchNote(const QModelIndex &i) {
-    mSimplenoteSync->getNote(mNoteList.at(i.row()));
+    mSimplenoteSync->fetchNote(mNoteList.at(i.row()));
 }
 
 void NoteList::fetchNoteList() {
-    mSimplenoteSync->getNoteList();
+    mSimplenoteSync->fetchNoteList();
 }
 
-void NoteList::updateNote(const Note& n)
-{
+void NoteList::updateNote(const Note& n) {
     mSimplenoteSync->updateNote(n);
+}
+
+void NoteList::trashNote(Note &n, bool trash) {
+    mSimplenoteSync->trashNote(n, trash);
+}
+
+void NoteList::setDisplayMode(NoteDisplayMode m) {
+    mCurrentDisplayMode = m;
 }
 
 /*
@@ -51,14 +58,14 @@ void NoteList::updateNote(const Note& n)
  *
  */
 
-void NoteList::fetchNoteList(QVector<Note*>* updatedList) {
+void NoteList::insertUpdatedNotes(QVector<Note*>* updatedList) {
     // for each note in the updated list, check whether we already have a (newer) version.
     for(auto it = updatedList->begin(); it != updatedList->end(); it++) {
         // save the current note key for lambda capture
         const QString& currentNoteKey = (*it)->getKey();
 
         // check whether a note with this key exists
-        auto result = std::find_if(mNoteList.begin(), mNoteList.end(), [currentNoteKey] (Note a) -> bool { return a.getKey() == currentNoteKey; });
+        auto result = std::find_if(mNoteList.begin(), mNoteList.end(), [currentNoteKey] (const Note& a) -> bool { return a.getKey() == currentNoteKey; });
 
         // if it does not exist in the current list, we must add it
         if(result == mNoteList.end()) {
@@ -104,7 +111,7 @@ void NoteList::onSimplenoteAuthentication(QNetworkReply::NetworkError) {
 void NoteList::onSimplenoteListUpdate(QNetworkReply::NetworkError, QVector<Note*>* noteList) {
     // parse note list from simplenote sync thingy
     if(noteList)
-        fetchNoteList(noteList);
+        insertUpdatedNotes(noteList);
 }
 
 void NoteList::onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note) {
@@ -121,6 +128,11 @@ void NoteList::onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note) 
     noteFetched(*note);
 }
 
+void NoteList::onToggleTrashView(bool enable)
+{
+    mCurrentDisplayMode = enable ? NoteDisplayMode::OnlyTrashed : NoteDisplayMode::OnlyNonTrashed;
+}
+
 void NoteList::onNoteClicked(QModelIndex index) {
     fetchNote(index);
 }
@@ -133,7 +145,14 @@ void NoteList::onNoteClicked(QModelIndex index) {
  */
 
 int NoteList::rowCount(const QModelIndex &) const {
-    return mNoteList.count();
+    // if the deletion state does not matter, just return the all count
+    if(mCurrentDisplayMode == NoteDisplayMode::Both)
+        return mNoteList.count();
+
+    NoteDisplayMode currentDisplayMode = mCurrentDisplayMode;
+
+    // if the deletion state is OnlyTrashed, only count deleted notes; if not, it must be OnlyNonTrashed, so return true only if not deleted.
+    return std::count_if(mNoteList.begin(), mNoteList.end(), [currentDisplayMode] (const Note& a) -> bool { return currentDisplayMode == NoteDisplayMode::OnlyTrashed ? a.isDeleted() : !a.isDeleted(); });
 }
 
 QVariant NoteList::data(const QModelIndex &index, int role) const {
@@ -152,14 +171,4 @@ QVariant NoteList::data(const QModelIndex &index, int role) const {
         return "content not fetched";
 
     return mNoteList.at(index.row()).getHeader();
-}
-
-QVariant NoteList::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (role != Qt::DisplayRole)
-        return QVariant();
-
-    if (orientation == Qt::Horizontal)
-        return QString("Column %1").arg(section);
-    else
-        return QString("Row %1").arg(section);
 }

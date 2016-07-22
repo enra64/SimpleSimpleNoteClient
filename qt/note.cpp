@@ -5,6 +5,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+#include <assert.h>
+
 const QVector<QString> &Note::getTags() {
     return mTags;
 }
@@ -48,24 +50,24 @@ const QDateTime &Note::getModifyDate() {
     return mModifyDate;
 }
 
-bool Note::isDeleted() {
+bool Note::isDeleted() const {
     return mIsDeleted;
 }
 
-int Note::getVersion() {
+int Note::getVersion() const {
     return mVersion;
 }
 
-int Note::getMinVersion() {
+int Note::getMinVersion() const {
     return mMinVersion;
 }
 
-int Note::getSyncnum() {
+int Note::getSyncnum() const {
     return mSyncnum;
 }
 
-bool Note::isUpdated() {
-    return false;
+bool Note::isNewNote() const {
+    return mKey.isEmpty();
 }
 
 void Note::setContent(const QString &newContent) {
@@ -73,22 +75,31 @@ void Note::setContent(const QString &newContent) {
 }
 
 void Note::setTags(const QVector<QString> &) {
-
+    assert(false);
 }
 
 void Note::setModifyDate(const QDateTime &timestamp) {
     mModifyDate = timestamp;
 }
 
+void Note::setDeleted(bool del) {
+    mIsDeleted = del;
+}
+
 QByteArray Note::jsonDump(bool insertModificationTimestamp) const {
     // data object
     QJsonObject data;
 
+    // ignore if new note
     if(!mKey.isEmpty())
         data.insert("key", QJsonValue(mKey));
+
     data.insert("content", QJsonValue(mContent));
 
-    /*data.insert("deleted", QJsonValue(mIsDeleted ? 1 : 0));// need int representation for bool
+    // the delete field is used to trash notes.
+    data.insert("deleted", QJsonValue(mIsDeleted ? 1 : 0));// need int representation for bool
+
+    /*
     data.insert("createdate", QJsonValue(QString::number(mCreateDate.toTime_t()).append(".719370")));// unix timestamp + wild guess about what sn wants
     data.insert("version", QJsonValue(9));
     data.insert("systemtags", parseVectorToJson(mSystemTags));
@@ -97,6 +108,7 @@ QByteArray Note::jsonDump(bool insertModificationTimestamp) const {
     data.insert("syncnum", QJsonValue(mSyncnum));
     */
 
+    // the modification field is used (i think) for the mod dates shown on the server
     if(insertModificationTimestamp)
         data.insert("modifydate", QJsonValue(QString::number(QDateTime::currentDateTimeUtc().toTime_t()).append(".719370")));// current unix timestamp + wild guess about what sn wants
 
@@ -108,8 +120,7 @@ bool Note::contentHasBeenFetched() const {
     return mContentFetched;
 }
 
-void Note::deleteKey()
-{
+void Note::deleteKey() {
     mKey = "";
 }
 
@@ -149,9 +160,9 @@ QJsonValue Note::parseVectorToJson(const QVector<QString>& source) const {
 Note::Note(const QJsonValue &val) {
     QJsonObject t = val.toObject();
 
-    // these are the contents without calling getNote
+    // // these are the contents when the content was not requested
     mCreateDate = getTime(t.value("createdate"));
-    mIsDeleted = t.value("deleted").toBool();
+    mIsDeleted = t.value("deleted").toInt();
     mKey = t.value("key").toString();
     mMinVersion = t.value("minversion").toInt();
     mModifyDate = getTime(t.value("modifydate").toInt());
@@ -160,7 +171,7 @@ Note::Note(const QJsonValue &val) {
     parseJsonToVector(t.value("tags"), mTags);
     parseJsonToVector(t.value("systemtags"), mSystemTags);
 
-    // these are the contents with calling getNote
+    // content was requested
     mContentFetched = t.value("content") != QJsonValue::Undefined;
     if(mContentFetched)
         mContent = t.value("content").toString();

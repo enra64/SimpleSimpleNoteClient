@@ -40,13 +40,22 @@ public:
      */
     QString getToken();
 
-    void getNote(const Note &n);
-    void getNote(const QString&key);
+    void fetchNote(const Note &n);
+    void fetchNote(const QString&key);
     void updateNote(const Note &n);
-    void addNote(Note&n);
-    void getNoteList(void);
-    void deleteNote(Note&);
-    void trashNote(Note&);
+    void addNote(const Note &n);
+    void fetchNoteList(void);
+
+    /**
+     * @brief deleteNote Permanently delete the note
+     */
+    void deleteNote(const Note& note);
+
+    /**
+     * @brief trashNote Move note to the trash
+     * @param note note to trash
+     */
+    void trashNote(Note &note, bool trash);
 
 private:
     QString mUser, mPassword, mToken;

@@ -10,6 +10,12 @@
 #include "note.h"
 #include "simplenotesync.h"
 
+enum struct NoteDisplayMode{
+    OnlyNonTrashed,
+    OnlyTrashed,
+    Both
+};
+
 class NoteList : public QAbstractListModel
 {
     Q_OBJECT
@@ -33,13 +39,28 @@ public:
      */
     void updateNote(const Note &n);
 
+    /**
+     * @brief trashNote Call this to move a note to the trash
+     * @param n the note to trash
+     */
+    void trashNote(Note &n, bool trash = true);
+
+    /**
+     * @brief setDisplayMode Call this to set whether not trashed / trashed notes are shown
+     * @param m display mode
+     */
+    void setDisplayMode(NoteDisplayMode m);
+
     // QAbstractItemModel interface
 public:
     int rowCount(const QModelIndex &) const override;
     QVariant data(const QModelIndex &index, int role) const override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
 signals:
+    /**
+     * @brief noteFetched This signal is issued when a note has been fetched, indicating that the note content has been loaded
+     * @param note the note that was received
+     */
     void noteFetched(const Note& note);
 
 public slots:
@@ -66,13 +87,19 @@ public slots:
      */
     void onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note);
 
+    /**
+     * @brief onToggleTrashView this slot sets the visibility of notes - either trash or nontrash only
+     * @param enable true if the trash should be shown
+     */
+    void onToggleTrashView(bool enable);
+
 private://functions
 
     /**
      * @brief updateNoteList iterate through the list, checking whether we should update anything
      * @param updatedList the updated list
      */
-    void fetchNoteList(QVector<Note*>* updatedList);
+    void insertUpdatedNotes(QVector<Note*>* updatedList);
 
     /**
      * @brief findNote Find the index of a note
@@ -82,7 +109,20 @@ private://functions
     int findNote(const QString& key);
 
 private://members
+
+    /**
+     * @brief currentDisplayMode Current display mode. Defaults to showing non-trashed notes only
+     */
+    NoteDisplayMode mCurrentDisplayMode = NoteDisplayMode::Both;
+
+    /**
+     * @brief mNoteList Vector used to store all note objects
+     */
     QVector<Note> mNoteList;
+
+    /**
+     * @brief mSimplenoteSync pointer to our simplenote sync object
+     */
     SimplenoteSync* mSimplenoteSync = nullptr;
 };
 

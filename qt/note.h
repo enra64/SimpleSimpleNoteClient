@@ -37,16 +37,17 @@ public://getter
     QString getContent();
     const QDateTime& getCreateDate();
     const QDateTime& getModifyDate();
-    bool isDeleted();
-    int getVersion();
-    int getMinVersion();
-    int getSyncnum();
-    bool isUpdated();
+    bool isDeleted() const;
+    int getVersion() const;
+    int getMinVersion() const;
+    int getSyncnum() const;
+    bool isNewNote() const;
 
 public://setter
     void setContent(const QString& newContent);
     void setTags(const QVector<QString>&);
     void setModifyDate(const QDateTime& timestamp);
+    void setDeleted(bool del);
 
 public://other
     QByteArray jsonDump(bool updateModificationTimestamp) const;

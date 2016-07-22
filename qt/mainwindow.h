@@ -14,8 +14,8 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
 
+    ~MainWindow();
 private slots:
     void onAuthentication(QNetworkReply::NetworkError);
     void onNoteFetched(const Note& note);
@@ -23,6 +23,8 @@ private slots:
 private slots://ui callbacks
     void on_pushButton_clicked();
     void on_actionSync_up_triggered();
+
+    void on_actionDelete_triggered();
 
 private:
     NoteList* mNoteList;
