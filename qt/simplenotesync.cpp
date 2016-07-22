@@ -109,7 +109,7 @@ void SimplenoteSync::updateNote(const Note& n) {
     // if no key exists, this is a new note
     if(noteCopy.getKey().isEmpty()){
         // format url
-        url = QString("%1?auth=%2&email=%2").arg(DATA_URL, getToken(), mUser);
+        url = QString("%1?auth=%2&email=%3").arg(DATA_URL, getToken(), mUser);
     }
     // key exists -> update note
     else {
@@ -127,13 +127,11 @@ void SimplenoteSync::updateNote(const Note& n) {
     request.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/x-www-form-urlencoded");
 
     // get note JSON dump
-    QByteArray json = noteCopy.jsonDump(true).replace('\n', QByteArray());
+    QByteArray json = noteCopy.jsonDump(true);
 
-    std::cout << "request" << json.toStdString() << std::endl;
+    //std::cout << "request" << json.toStdString() << std::endl;
 
-    //request = QNetworkRequest(QUrl("https://app.simplenote.com/api2/data?auth=D45F9AC2493DE08C68C9C79A90570E735688EEC7C96390EF4C7882DC58F047F7&email=***REMOVED***"));
-    //json = "{\"content\": \"Second Note.\", \"tags\": [\"tag1\", \"tag2\"]}";
-
+    // start request
     mNetworkManager->post(request, json);
 }
 
