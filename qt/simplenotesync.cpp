@@ -137,9 +137,9 @@ void SimplenoteSync::updateNote(const Note& n) {
 
 void SimplenoteSync::updateNoteRequestFinished(QNetworkReply *reply)
 {
-    //
-    //noteRequestFinished(reply);
-    std::cout << "reply" << reply->readAll().toStdString() << "fin:" << reply->isFinished() << "open" << reply->isOpen() << std::endl;
+    // update our note store
+    noteRequestFinished(reply);
+    //std::cout << "reply" << reply->readAll().toStdString() << "fin:" << reply->isFinished() << "open" << reply->isOpen() << std::endl;
 
     // disconnect the finish signal to avoid double-reading
     disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(updateNoteRequestFinished(QNetworkReply*)));
