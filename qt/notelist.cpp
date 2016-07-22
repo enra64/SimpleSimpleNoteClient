@@ -1,8 +1,7 @@
 #include "notelist.h"
 #include "simplenotesync.h"
 
-NoteList::NoteList(const QString &user, const QString &password, QObject* parent) : QAbstractListModel(parent)
-{
+NoteList::NoteList(const QString &user, const QString &password, QObject* parent) : QAbstractListModel(parent) {
     // create a simplenote sync object; it is going to handle syncing with simplenote for us
     mSimplenoteSync = new SimplenoteSync(user, password, parent);
 
@@ -16,7 +15,7 @@ NoteList::NoteList(const QString &user, const QString &password, QObject* parent
 
     // connect to the simplenote note list update finish signal
     connect(mSimplenoteSync, SIGNAL(onNote(QNetworkReply::NetworkError, Note*)),
-            this, SLOT(onSimplenoteNoteUpdate(QNetworkReply::NetworkError, Note*)));
+            this, SLOT(onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note*)));
 }
 
 /*
@@ -30,14 +29,17 @@ NoteList::NoteList(const QString &user, const QString &password, QObject* parent
  *
  */
 
-void NoteList::fetchNote(const QModelIndex &i)
-{
+void NoteList::fetchNote(const QModelIndex &i) {
     mSimplenoteSync->getNote(mNoteList.at(i.row()));
 }
 
-void NoteList::updateNoteList()
-{
+void NoteList::fetchNoteList() {
     mSimplenoteSync->getNoteList();
+}
+
+void NoteList::updateNote(const Note& n)
+{
+    mSimplenoteSync->updateNote(n);
 }
 
 /*
@@ -49,10 +51,9 @@ void NoteList::updateNoteList()
  *
  */
 
-void NoteList::updateNoteList(QVector<Note*>* updatedList)
-{
+void NoteList::fetchNoteList(QVector<Note*>* updatedList) {
     // for each note in the updated list, check whether we already have a (newer) version.
-    for(auto it = updatedList->begin(); it != updatedList->end(); it++){
+    for(auto it = updatedList->begin(); it != updatedList->end(); it++) {
         // save the current note key for lambda capture
         const QString& currentNoteKey = (*it)->getKey();
 
@@ -60,7 +61,7 @@ void NoteList::updateNoteList(QVector<Note*>* updatedList)
         auto result = std::find_if(mNoteList.begin(), mNoteList.end(), [currentNoteKey] (Note a) -> bool { return a.getKey() == currentNoteKey; });
 
         // if it does not exist in the current list, we must add it
-        if(result == mNoteList.end()){
+        if(result == mNoteList.end()) {
             // notify the list of our plan
             beginInsertRows(QModelIndex(), mNoteList.size(), mNoteList.size() + 1);
             // add note
@@ -69,15 +70,14 @@ void NoteList::updateNoteList(QVector<Note*>* updatedList)
             endInsertRows();
         }
         // if it exists, we check the modifyDate to decide whether or not to update it
-        else{
+        else {
 
         }
     }
     delete updatedList;
 }
 
-int NoteList::findNote(const QString &key)
-{
+int NoteList::findNote(const QString &key) {
     // find the note
     auto keyPos = std::find_if(mNoteList.begin(), mNoteList.end(), [key] (Note a) -> bool { return a.getKey() == key; });
 
@@ -104,11 +104,10 @@ void NoteList::onSimplenoteAuthentication(QNetworkReply::NetworkError) {
 void NoteList::onSimplenoteListUpdate(QNetworkReply::NetworkError, QVector<Note*>* noteList) {
     // parse note list from simplenote sync thingy
     if(noteList)
-        updateNoteList(noteList);
+        fetchNoteList(noteList);
 }
 
-void NoteList::onSimplenoteNoteUpdate(QNetworkReply::NetworkError, Note* note)
-{
+void NoteList::onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note) {
     // abort if the note is invalid
     if(!note) return;
 
@@ -117,13 +116,14 @@ void NoteList::onSimplenoteNoteUpdate(QNetworkReply::NetworkError, Note* note)
 
     // update our data store
     mNoteList.replace(notePosition, *note);
+
+    // call note fetched to signal the content update
+    noteFetched(*note);
 }
 
-void NoteList::onNoteClicked(QModelIndex index)
-{
+void NoteList::onNoteClicked(QModelIndex index) {
     fetchNote(index);
 }
-
 
 
 /*
@@ -132,13 +132,11 @@ void NoteList::onNoteClicked(QModelIndex index)
  *
  */
 
-int NoteList::rowCount(const QModelIndex &) const
-{
+int NoteList::rowCount(const QModelIndex &) const {
     return mNoteList.count();
 }
 
-QVariant NoteList::data(const QModelIndex &index, int role) const
-{
+QVariant NoteList::data(const QModelIndex &index, int role) const {
     if(!index.isValid())
         return QVariant();
 
@@ -153,11 +151,10 @@ QVariant NoteList::data(const QModelIndex &index, int role) const
     if(!at.contentHasBeenFetched())
         return "content not fetched";
 
-    return mNoteList.at(index.row()).getContent();
+    return mNoteList.at(index.row()).getHeader();
 }
 
-QVariant NoteList::headerData(int section, Qt::Orientation orientation, int role) const
-{
+QVariant NoteList::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole)
         return QVariant();
 

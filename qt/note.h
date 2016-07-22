@@ -25,12 +25,15 @@ private://note contents
 private://custom members & functions
     bool mContentFetched;
     QDateTime getTime(const QJsonValue& from);
+    void parseJsonToVector(const QJsonValue& json, QVector<QString> &target);
+    QJsonValue parseVectorToJson(const QVector<QString>& source) const;
 
 public://getter
     const QVector<QString>& getTags();
     const QVector<QString>& getSystemTags();
     const QString& getKey() const;
     const QString& getContent() const;
+    QString getHeader() const;
     QString getContent();
     const QDateTime& getCreateDate();
     const QDateTime& getModifyDate();
@@ -43,12 +46,15 @@ public://getter
 public://setter
     void setContent(const QString& newContent);
     void setTags(const QVector<QString>&);
+    void setModifyDate(const QDateTime& timestamp);
 
 public://other
+    QByteArray jsonDump() const;
     bool contentHasBeenFetched() const;
     Note (const QString&);
     Note ();
     Note (const QJsonValue& val);
+
 };
 
 #endif // NOTE_H

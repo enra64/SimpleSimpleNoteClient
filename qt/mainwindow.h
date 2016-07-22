@@ -17,12 +17,17 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
     void onAuthentication(QNetworkReply::NetworkError);
+    void onNoteFetched(const Note& note);
+
+private slots://ui callbacks
+    void on_pushButton_clicked();
+    void on_actionSync_up_triggered();
 
 private:
     NoteList* mNoteList;
     Ui::MainWindow *ui;
+    Note* mCurrentEditNote = nullptr;
 };
 
 #endif // MAINWINDOW_H

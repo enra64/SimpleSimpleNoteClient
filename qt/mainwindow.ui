@@ -21,6 +21,16 @@
        <widget class="QListView" name="listView"/>
       </item>
       <item>
+       <widget class="QTextBrowser" name="textBrowser">
+        <property name="undoRedoEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="pushButton">
         <property name="text">
          <string>PushButton</string>
@@ -40,6 +50,13 @@
      <height>25</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuNote">
+    <property name="title">
+     <string>Note</string>
+    </property>
+    <addaction name="actionSync_up"/>
+   </widget>
+   <addaction name="menuNote"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -50,6 +67,14 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionSync_up">
+   <property name="text">
+    <string>Sync up</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

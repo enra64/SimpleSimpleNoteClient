@@ -57,7 +57,6 @@ void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply) {
 
     // send a status signal
     onAuthentication(reply->error());
-    std::cout << "auth finished: " << reply->isFinished() << "open?:" << reply->isOpen() << std::endl;
 
     // clean up
     reply->deleteLater();
@@ -65,7 +64,7 @@ void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply) {
 
 void SimplenoteSync::getNote(const QString& key) {
     // create url data string
-    QString postString = QString("%1?auth=%2&email=%3").arg(key, getToken(), mUser);
+    QString postString = QString("/%1?auth=%2&email=%3").arg(key, getToken(), mUser);
 
     // create a request from that
     QNetworkRequest listRequest(postString.prepend(DATA_URL));
@@ -100,12 +99,54 @@ void SimplenoteSync::noteRequestFinished(QNetworkReply *reply)
     reply->deleteLater();
 }
 
+void SimplenoteSync::updateNote(const Note& n) {
+    // make a copy to enable changes. i have no idea anymore what n points to.
+    Note noteCopy = Note(n);
+
+    // space for the URL
+    QString url;
+
+    // if no key exists, this is a new note
+    if(noteCopy.getKey().isEmpty()){
+        // format url
+        url = QString("%1?auth=%2&email=%2").arg(DATA_URL, getToken(), mUser);
+    }
+    // key exists -> update note
+    else {
+        // set modification date to now
+        noteCopy.setModifyDate(QDateTime::currentDateTime());
+        // format url
+        url = QString("%1/%2?auth=%3&email=%4").arg(DATA_URL, n.getKey(), getToken(), mUser);
+    }
+
+    // connect to the finished signal
+    connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(updateNoteRequestFinished(QNetworkReply*)));
+
+    // start request
+    // TODO it seems that i and one of these functions have different ideas about encoding.
+    QByteArray dump = noteCopy.jsonDump();
+    std::cout << dump.toStdString() << std::endl;
+    mNetworkManager->post(QNetworkRequest(url), dump);
+}
+
+void SimplenoteSync::updateNoteRequestFinished(QNetworkReply *reply)
+{
+    //
+    noteRequestFinished(reply);
+
+    // disconnect the finish signal to avoid double-reading
+    disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(updateNoteRequestFinished(QNetworkReply*)));
+
+    // clean up
+    reply->deleteLater();
+}
+
 void SimplenoteSync::getNoteList() {
     // create url data string
-    QString postString = QString("auth=%1&email=%2&length=100").arg(getToken(), mUser);
+    QString getString = QString("auth=%1&email=%2&length=100").arg(getToken(), mUser);
 
     // create a request from that
-    QNetworkRequest listRequest(postString.prepend(INDEX_URL));
+    QNetworkRequest listRequest(getString.prepend(INDEX_URL));
 
     // connect to the finished signal
     connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteListRequestFinished(QNetworkReply*)));
@@ -155,11 +196,8 @@ QString SimplenoteSync::getToken() {
 }
 
 void SimplenoteSync::getNote(const Note & n) {
+    // call overload
     getNote(n.getKey());
-}
-
-void SimplenoteSync::updateNote(Note &) {
-
 }
 
 void SimplenoteSync::addNote(Note &) {

@@ -42,7 +42,7 @@ public:
 
     void getNote(const Note &n);
     void getNote(const QString&key);
-    void updateNote(Note&);
+    void updateNote(const Note &n);
     void addNote(Note&);
     void getNoteList(void);
     void deleteNote(Note&);
@@ -66,7 +66,7 @@ private:
     /**
      * @brief DATA_URL Data URL constant
      */
-    const QString DATA_URL = "https://app.simplenote.com/api2/data/";
+    const QString DATA_URL = "https://app.simplenote.com/api2/data";
 
     /**
      * @brief INDX_URL Index URL constant
@@ -102,6 +102,12 @@ public slots:
      * @param reply The reply received for the auth request
      */
     void authenticationRequestFinished(QNetworkReply* reply);
+
+    /**
+     * @brief authenticationRequestFinished This slot is to be connected with finished-signals for authentication requests
+     * @param reply The reply received for the auth request
+     */
+    void updateNoteRequestFinished(QNetworkReply* reply);
 
     /**
      * @brief noteListRequestFinished This slot is to be connected with finished-signals for note list requests
