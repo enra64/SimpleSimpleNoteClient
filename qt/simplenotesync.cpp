@@ -77,8 +77,6 @@ void SimplenoteSync::fetchNote(const QString& key) {
     // connect to the finished signal
     connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
 
-    //std::cout << postString.toStdString() << std::endl;
-
     // start the request via GET
     mNetworkManager->get(listRequest);
 }
@@ -87,8 +85,6 @@ void SimplenoteSync::noteRequestFinished(QNetworkReply *reply)
 {
     // check whether any errors occured
     if(reply->error() == QNetworkReply::NoError) {
-        std::cout << reply->isFinished() << reply->isOpen() << std::endl;
-
         // create json object from response
         QJsonObject data = QJsonDocument::fromJson(reply->readAll()).object();
 
@@ -134,8 +130,6 @@ void SimplenoteSync::updateNote(const Note& n) {
     // get note JSON dump
     QByteArray json = noteCopy.jsonDump(true);
 
-    //std::cout << "request" << json.toStdString() << std::endl;
-
     // start request
     mNetworkManager->post(request, json);
 }
@@ -144,7 +138,6 @@ void SimplenoteSync::updateNoteRequestFinished(QNetworkReply *reply)
 {
     // update our note store
     noteRequestFinished(reply);
-    //std::cout << "reply" << reply->readAll().toStdString() << "fin:" << reply->isFinished() << "open" << reply->isOpen() << std::endl;
 
     // disconnect the finish signal to avoid double-reading
     disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(updateNoteRequestFinished(QNetworkReply*)));

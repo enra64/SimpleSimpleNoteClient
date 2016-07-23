@@ -1,9 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QModelIndex>
 #include <QMainWindow>
 #include <QNetworkReply>
 
+class TrashFilterProxyModel;
 class NoteList;
 class Note;
 
@@ -26,11 +28,18 @@ private slots:
 private slots://ui callbacks
     void on_pushButton_clicked();
     void on_actionSync_up_triggered();
-
+    void onNoteClicked(QModelIndex index);
     void on_actionDelete_triggered();
+
+    /**
+     * @brief onToggleTrashView this slot sets the visibility of notes - either trash or nontrash only
+     * @param enable true if the trash should be shown
+     */
+    void onToggleTrashView(bool enable);
 
 private:
     NoteList* mNoteList;
+    TrashFilterProxyModel* mTrashFilterProxyModel;
     Ui::MainWindow *ui;
     Note* mCurrentEditNote = nullptr;
 };

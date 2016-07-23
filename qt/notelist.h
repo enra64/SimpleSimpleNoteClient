@@ -9,16 +9,13 @@
 #include "simplenotesync.h"
 #include "note.h"
 
-enum struct NoteDisplayMode{
-    OnlyNonTrashed,
-    OnlyTrashed,
-    Both
-};
-
 class NoteList : public QAbstractListModel
 {
     Q_OBJECT
 public:
+    // declare our proxy model as friend to be able to access the data
+    friend class TrashFilterProxyModel;
+
     NoteList(const QString &user, const QString &password, QObject *parent = 0);
 
     /**
@@ -43,12 +40,6 @@ public:
      * @param n the note to trash
      */
     void trashNote(Note &n, bool trash = true);
-
-    /**
-     * @brief setDisplayMode Call this to set whether not trashed / trashed notes are shown
-     * @param m display mode
-     */
-    void setDisplayMode(NoteDisplayMode m);
 
     // QAbstractItemModel interface
 public:
@@ -86,12 +77,6 @@ public slots:
      */
     void onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note);
 
-    /**
-     * @brief onToggleTrashView this slot sets the visibility of notes - either trash or nontrash only
-     * @param enable true if the trash should be shown
-     */
-    void onToggleTrashView(bool enable);
-
 private://functions
 
     /**
@@ -108,11 +93,6 @@ private://functions
     int findNote(const QString& key);
 
 private://members
-
-    /**
-     * @brief currentDisplayMode Current display mode. Defaults to showing non-trashed notes only
-     */
-    NoteDisplayMode mCurrentDisplayMode = NoteDisplayMode::Both;
 
     /**
      * @brief mNoteList Vector used to store all note objects

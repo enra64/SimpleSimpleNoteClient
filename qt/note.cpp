@@ -99,15 +99,6 @@ QByteArray Note::jsonDump(bool insertModificationTimestamp) const {
     // the delete field is used to trash notes.
     data.insert("deleted", QJsonValue(mIsDeleted ? 1 : 0));// need int representation for bool
 
-    /*
-    data.insert("createdate", QJsonValue(QString::number(mCreateDate.toTime_t()).append(".719370")));// unix timestamp + wild guess about what sn wants
-    data.insert("version", QJsonValue(9));
-    data.insert("systemtags", parseVectorToJson(mSystemTags));
-    data.insert("tags", parseVectorToJson(mTags));
-    data.insert("minversion", QJsonValue(mMinVersion));
-    data.insert("syncnum", QJsonValue(mSyncnum));
-    */
-
     // the modification field is used (i think) for the mod dates shown on the server
     if(insertModificationTimestamp)
         data.insert("modifydate", QJsonValue(QString::number(QDateTime::currentDateTimeUtc().toTime_t()).append(".719370")));// current unix timestamp + wild guess about what sn wants

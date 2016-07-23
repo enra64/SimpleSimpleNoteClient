@@ -46,10 +46,6 @@ void NoteList::trashNote(Note &n, bool trash) {
     mSimplenoteSync->trashNote(n, trash);
 }
 
-void NoteList::setDisplayMode(NoteDisplayMode m) {
-    mCurrentDisplayMode = m;
-}
-
 /*
  *
  *
@@ -125,13 +121,11 @@ void NoteList::onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note) 
     // update our data store
     mNoteList.replace(notePosition, *note);
 
-    // call note fetched to signal the content update
-    noteFetched(*note);
-}
+    // _really_ update the row text
+    dataChanged(index(notePosition, 0, QModelIndex()), index(notePosition, 0, QModelIndex()));
 
-void NoteList::onToggleTrashView(bool enable)
-{
-    mCurrentDisplayMode = enable ? NoteDisplayMode::OnlyTrashed : NoteDisplayMode::OnlyNonTrashed;
+    // call note fetched to signal the content update
+    emit noteFetched(*note);
 }
 
 void NoteList::onNoteClicked(QModelIndex index) {
@@ -146,14 +140,8 @@ void NoteList::onNoteClicked(QModelIndex index) {
  */
 
 int NoteList::rowCount(const QModelIndex &) const {
-    // if the deletion state does not matter, just return the all count
-    if(mCurrentDisplayMode == NoteDisplayMode::Both)
-        return mNoteList.count();
-
-    NoteDisplayMode currentDisplayMode = mCurrentDisplayMode;
-
-    // if the deletion state is OnlyTrashed, only count deleted notes; if not, it must be OnlyNonTrashed, so return true only if not deleted.
-    return std::count_if(mNoteList.begin(), mNoteList.end(), [currentDisplayMode] (const Note& a) -> bool { return currentDisplayMode == NoteDisplayMode::OnlyTrashed ? a.isDeleted() : !a.isDeleted(); });
+    // return the note count
+    return mNoteList.count();
 }
 
 QVariant NoteList::data(const QModelIndex &index, int role) const {

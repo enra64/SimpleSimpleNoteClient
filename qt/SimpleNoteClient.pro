@@ -16,11 +16,13 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     note.cpp \
     simplenotesync.cpp \
-    notelist.cpp
+    notelist.cpp \
+    trashfilterproxymodel.cpp
 
 HEADERS  += mainwindow.h \
     note.h \
     simplenotesync.h \
-    notelist.h
+    notelist.h \
+    trashfilterproxymodel.h
 
 FORMS    += mainwindow.ui
