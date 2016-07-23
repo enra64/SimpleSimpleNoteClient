@@ -1,4 +1,5 @@
 #include "notelist.h"
+
 #include "simplenotesync.h"
 
 NoteList::NoteList(const QString &user, const QString &password, QObject* parent) : QAbstractListModel(parent) {
@@ -170,5 +171,10 @@ QVariant NoteList::data(const QModelIndex &index, int role) const {
     if(!at.contentHasBeenFetched())
         return "content not fetched";
 
-    return mNoteList.at(index.row()).getHeader();
+    QString debugInfo;
+
+    if(at.isDeleted())
+        debugInfo += "<<trashed>>";
+
+    return debugInfo + mNoteList.at(index.row()).getHeader();
 }

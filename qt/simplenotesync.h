@@ -13,7 +13,7 @@
 #include <iostream>
 #include <memory>
 
-#include "note.h"
+class Note;
 
 class SimplenoteSync : public QObject
 {

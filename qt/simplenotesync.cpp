@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 
 #include <assert.h>
+#include "note.h"
 
 SimplenoteSync::SimplenoteSync(const QString& user, const QString& password, QObject *parent) : QObject(parent) {
     mUser = user;

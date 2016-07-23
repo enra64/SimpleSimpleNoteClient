@@ -2,7 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "notelist.h"
+#include <QNetworkReply>
+
+class NoteList;
+class Note;
 
 namespace Ui {
 class MainWindow;

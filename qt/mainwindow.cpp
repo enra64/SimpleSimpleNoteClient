@@ -1,5 +1,9 @@
 #include "mainwindow.h"
+
 #include "ui_mainwindow.h"
+
+#include "notelist.h"
+#include "note.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(onNoteFetched(const Note&)));
 
     // enable the trash toggle
-    ui->mainToolBar->addAction("Toggle trash view", mNoteList, SLOT(onToggleTrash(bool)));
+    ui->mainToolBar->addAction("show trash only", mNoteList, SLOT(onToggleTrashView(bool)))->setCheckable(true);
 }
 
 MainWindow::~MainWindow() {

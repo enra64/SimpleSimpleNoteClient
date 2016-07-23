@@ -3,12 +3,11 @@
 
 #include <QAbstractListModel>
 #include <QNetworkReply>
-#include <QMap>
 
 #include <algorithm>
 
-#include "note.h"
 #include "simplenotesync.h"
+#include "note.h"
 
 enum struct NoteDisplayMode{
     OnlyNonTrashed,
