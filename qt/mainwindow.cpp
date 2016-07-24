@@ -13,13 +13,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    // create a new notehandler object
+    // create a new notelist
     mNoteList = new NoteList("***REMOVED***", "***REMOVED***", this);
 
-
+    //
     mTrashFilterProxyModel = new TrashFilterProxyModel(this);
 
+    // set our notelist as proxy source
     mTrashFilterProxyModel->setSourceModel(mNoteList);
+
+    // set the proxy model as the list model
     ui->listView->setModel(mTrashFilterProxyModel);
 
     // listen to click signals on note list
@@ -30,16 +33,27 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mNoteList, SIGNAL(noteFetched(const Note&)),
             this, SLOT(onNoteFetched(const Note&)));
 
-    // enable the trash toggle
-    ui->mainToolBar->addAction("show trash only", this, SLOT(onToggleTrashView(bool)))->setCheckable(true);
+    // enable the trash button
+    QAction* trashAction = ui->mainToolBar->addAction("Delete note", this, SLOT(onTrashNote()));
+
+    // set trash icon
+    trashAction->setIcon(style()->standardIcon(QStyle::SP_TrashIcon));
 }
 
-void MainWindow::onToggleTrashView(bool enable)
+void MainWindow::onTrashNote()
 {
-    mTrashFilterProxyModel->setViewMode(enable ? DisplayMode::OnlyTrashed : DisplayMode::OnlyNonTrashed);
+    on_actionDelete_triggered();
+}
+
+void MainWindow::on_actionToggle_Showing_Trash_triggered(bool enable)
+{
+    mTrashFilterProxyModel->setViewMode(enable ? DisplayMode::Both : DisplayMode::OnlyNonTrashed);
 }
 
 MainWindow::~MainWindow() {
+    delete mNoteList;
+    delete mCurrentEditNote;
+    delete mTrashFilterProxyModel;
     delete ui;
 }
 
@@ -77,3 +91,5 @@ void MainWindow::on_actionDelete_triggered()
     if(mCurrentEditNote)
         mNoteList->trashNote(*mCurrentEditNote);
 }
+
+

@@ -31,11 +31,17 @@ private slots://ui callbacks
     void onNoteClicked(QModelIndex index);
     void on_actionDelete_triggered();
 
+
     /**
-     * @brief onToggleTrashView this slot sets the visibility of notes - either trash or nontrash only
+     * @brief onTrashNote Call to move the current note to the trash
+     */
+    void onTrashNote();
+
+    /**
+     * @brief onToggleTrashView this slot sets the visibility of notes - either only non trashed or both
      * @param enable true if the trash should be shown
      */
-    void onToggleTrashView(bool enable);
+    void on_actionToggle_Showing_Trash_triggered(bool enable);
 
 private:
     NoteList* mNoteList;
