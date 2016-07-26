@@ -61,13 +61,6 @@ private:
     QString mUser, mPassword, mToken;
 
     /**
-     * @brief parseJsonToNotelist Parse the received JSON data into a NoteList object
-     * @param json raw JSON data received
-     * @return NoteList with the parsed json data
-     */
-    QVector<Note*>* parseJsonToNotelist(const QJsonObject &json);
-
-    /**
      * @brief AUTH_URL Authentication URL constant
      */
     const QUrl AUTH_URL = QUrl("https://app.simplenote.com/api/login");

@@ -2,6 +2,7 @@
 
 #include "ui_mainwindow.h"
 
+#include <QCloseEvent>
 #include <QModelIndex>
 
 #include "notelist.h"
@@ -14,7 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // create a new notelist
-    mNoteList = new NoteList("***REMOVED***", "***REMOVED***", this);
+    mNoteList = new NoteList("***REMOVED***",
+                             "***REMOVED***",
+                             "/home/arne/test.json", this);
 
     //
     mTrashFilterProxyModel = new TrashFilterProxyModel(this);
@@ -33,11 +36,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mNoteList, SIGNAL(noteFetched(const Note&)),
             this, SLOT(onNoteFetched(const Note&)));
 
+    // listen to auth signals
+    //connect(mNoteList, SIGNAL(onAuthentication()), this, SLOT(onAuthentication()));
+
     // enable the trash button
     QAction* trashAction = ui->mainToolBar->addAction("Delete note", this, SLOT(onTrashNote()));
 
     // set trash icon
     trashAction->setIcon(style()->standardIcon(QStyle::SP_TrashIcon));
+
+    // fetch the note list
+    mNoteList->fetchNoteList();
 }
 
 void MainWindow::onTrashNote()
@@ -50,6 +59,12 @@ void MainWindow::on_actionToggle_Showing_Trash_triggered(bool enable)
     mTrashFilterProxyModel->setViewMode(enable ? DisplayMode::Both : DisplayMode::OnlyNonTrashed);
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    mNoteList->writeToDisk();
+    event->accept();
+}
+
 MainWindow::~MainWindow() {
     delete mNoteList;
     delete mCurrentEditNote;
@@ -57,13 +72,7 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::on_pushButton_clicked() {
-    // try to authenticate with the simplenote service
-    mNoteList->fetchNoteList();
-}
-
 void MainWindow::onAuthentication(QNetworkReply::NetworkError) {
-    ui->pushButton->setText("this was not supposed to happen");
 }
 
 void MainWindow::onNoteFetched(const Note &note)

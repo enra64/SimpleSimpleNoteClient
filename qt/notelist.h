@@ -3,8 +3,7 @@
 
 #include <QAbstractListModel>
 #include <QNetworkReply>
-
-#include <algorithm>
+#include <QStack>
 
 #include "simplenotesync.h"
 #include "note.h"
@@ -16,13 +15,9 @@ public:
     // declare our proxy model as friend to be able to access the data
     friend class TrashFilterProxyModel;
 
-    NoteList(const QString &user, const QString &password, QObject *parent = 0);
+    NoteList(const QString &user, const QString &password, const QString& dataPath, QObject *parent = 0);
 
-    /**
-     * @brief fetchNote Fetches the note content, and updates it
-     * @param i index of the note
-     */
-    void fetchNote(const QModelIndex& i);
+
 
     /**
      * @brief fetchNoteList Fetch a list of available notes
@@ -41,6 +36,16 @@ public:
      */
     void trashNote(Note &n, bool trash = true);
 
+    /**
+     * @brief writeToDisk write out the current notelist to disk
+     */
+    void writeToDisk();
+
+    /**
+     * @brief readFromDisk read the notelist from disk, and update our store
+     */
+    void readFromDisk();
+
     // QAbstractItemModel interface
 public:
     int rowCount(const QModelIndex &) const override;
@@ -53,6 +58,12 @@ signals:
      */
     void noteFetched(const Note& note);
 
+    /**
+     * @brief onAuthentication This signal is issued when the auth request has been answered.
+     * @param err the error that occured
+     */
+    void onAuthentication(QNetworkReply::NetworkError err);
+
 public slots:
     /**
      * @brief onNoteClicked To be called when a note has been clicked
@@ -63,7 +74,7 @@ public slots:
     /**
      * @brief onSimplenoteAuthentication This slot is for the "auth request finished"-signal from the simplenote adapter
      */
-    void onSimplenoteAuthentication(QNetworkReply::NetworkError);
+    void onSimplenoteAuthentication(QNetworkReply::NetworkError err);
 
     /**
      * @brief onSimplenoteListUpdate This slot is for the "list request finished"-signal from the simplenote adapter
@@ -80,6 +91,29 @@ public slots:
 private://functions
 
     /**
+     * @brief fetchNote Fetches the note content, and updates it
+     * @param i index of the note
+     */
+    void fetchNote(const QModelIndex& i);
+
+    /**
+     * @brief fetchNote Fetches the note content, and updates it
+     * @param i row of the note
+     */
+    void fetchNote(int row);
+
+    /**
+     * @brief fetchNote Fetches the note content, and updates it
+     * @param i the note
+     */
+    void fetchNote(const Note& note);
+
+    /**
+     * @brief fetchNote Fetch the content of the note at the top of the stack
+     */
+    void fetchNote();
+
+    /**
      * @brief updateNoteList iterate through the list, checking whether we should update anything
      * @param updatedList the updated list
      */
@@ -93,6 +127,10 @@ private://functions
     int findNote(const QString& key);
 
 private://members
+    /**
+     * @brief mCurrentlyFetchingNote Variable used to determine whether we can currently fetch a note
+     */
+    bool mCurrentlyFetchingNote = false;
 
     /**
      * @brief mNoteList Vector used to store all note objects
@@ -100,9 +138,19 @@ private://members
     QVector<Note> mNoteList;
 
     /**
+     * @brief mFetchStack A stack of keys of notes that we still need to request
+     */
+    QStack<QString> mFetchStack;
+
+    /**
      * @brief mSimplenoteSync pointer to our simplenote sync object
      */
     SimplenoteSync* mSimplenoteSync = nullptr;
+
+    /**
+     * @brief mDataPath the path where disk storage for notes lies
+     */
+    QString mDataPath;
 };
 
 #endif // NOTELIST_H

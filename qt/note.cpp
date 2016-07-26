@@ -86,7 +86,7 @@ void Note::setDeleted(bool del) {
     mIsDeleted = del;
 }
 
-QByteArray Note::jsonDump(bool insertModificationTimestamp) const {
+QJsonDocument Note::jsonDump(bool insertModificationTimestamp) const {
     // data object
     QJsonObject data;
 
@@ -99,12 +99,30 @@ QByteArray Note::jsonDump(bool insertModificationTimestamp) const {
     // the delete field is used to trash notes.
     data.insert("deleted", QJsonValue(mIsDeleted ? 1 : 0));// need int representation for bool
 
+    // version field for comparing notes on disk to net
+    data.insert("version", QJsonValue(mVersion));
+
     // the modification field is used (i think) for the mod dates shown on the server
     if(insertModificationTimestamp)
         data.insert("modifydate", QJsonValue(QString::number(QDateTime::currentDateTimeUtc().toTime_t()).append(".719370")));// current unix timestamp + wild guess about what sn wants
 
     // return as plaintext json
-    return QJsonDocument(data).toJson();
+    return QJsonDocument(data);
+}
+
+QVector<Note*>* Note::parseJsonToNotelist(const QJsonObject& json) {
+    // initialise result data vector
+    QVector<Note*>* noteVector = new QVector<Note*>();
+
+    // access data array within json
+    QJsonArray notes = json.value("data").toArray();
+
+    // create a note object for each data array element
+    for(int i = 0; i < notes.size(); i++)
+        noteVector->push_back(new Note(notes.at(i)));
+
+    // return result
+    return noteVector;
 }
 
 bool Note::contentHasBeenFetched() const {
@@ -113,14 +131,6 @@ bool Note::contentHasBeenFetched() const {
 
 void Note::deleteKey() {
     mKey = "";
-}
-
-Note::Note(const QString &) {
-
-}
-
-Note::Note() {
-
 }
 
 QDateTime Note::getTime(const QJsonValue &from) {
@@ -166,4 +176,23 @@ Note::Note(const QJsonValue &val) {
     mContentFetched = t.value("content") != QJsonValue::Undefined;
     if(mContentFetched)
         mContent = t.value("content").toString();
+
+    qDebug() << "ctor note" << *this;
+}
+
+Note::Note()
+{
+qDebug() << "ctor note empty";
+}
+
+Note::~Note()
+{
+    qDebug() << "dtor " << *this;
+}
+
+
+QDebug operator<<(QDebug dbg, const Note &type)
+{
+    dbg.nospace() << "Note(" << type.getKey() << ")";
+    return dbg.maybeSpace();
 }

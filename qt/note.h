@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QDateTime>
 #include <QString>
+#include <QDebug>
 
 class QJsonValue;
 
@@ -43,6 +44,13 @@ public://getter
     int getSyncnum() const;
     bool isNewNote() const;
 
+    /**
+     * @brief parseJsonToNotelist Parse JSON data (in simplenote format) into a vector of notes
+     * @param json raw JSON data received
+     * @return NoteList with the parsed json data
+     */
+    static QVector<Note*>* parseJsonToNotelist(const QJsonObject& json);
+
 public://setter
     void setContent(const QString& newContent);
     void setTags(const QVector<QString>&);
@@ -50,17 +58,18 @@ public://setter
     void setDeleted(bool del);
 
 public://other
-    QByteArray jsonDump(bool updateModificationTimestamp) const;
+    QJsonDocument jsonDump(bool updateModificationTimestamp) const;
     bool contentHasBeenFetched() const;
 
     /**
      * @brief deleteKey sets the key to an empty string, so the note will be handled as a new note
      */
     void deleteKey();
-    Note (const QString&);
-    Note ();
     Note (const QJsonValue& val);
-
+    Note();
+    ~Note();
 };
+
+QDebug operator<<(QDebug dbg, const Note &type);
 
 #endif // NOTE_H

@@ -68,33 +68,38 @@ void SimplenoteSync::authenticationRequestFinished(QNetworkReply *reply) {
 }
 
 void SimplenoteSync::fetchNote(const QString& key) {
+    // check key ok
+    assert(!key.isEmpty());
+
     // create url data string
-    QString postString = QString("/%1?auth=%2&email=%3").arg(key, getToken(), mUser);
+    QString postString = QString("%1/%2?auth=%3&email=%4").arg(DATA_URL, key, getToken(), mUser);
 
     // create a request from that
-    QNetworkRequest listRequest(postString.prepend(DATA_URL));
+    QNetworkRequest noteRequest(postString);
 
     // connect to the finished signal
     connect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
 
     // start the request via GET
-    mNetworkManager->get(listRequest);
+    mNetworkManager->get(noteRequest);
 }
 
 void SimplenoteSync::noteRequestFinished(QNetworkReply *reply)
 {
+    // disconnect the finish signal to avoid double-reading
+    disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
+
     // check whether any errors occured
     if(reply->error() == QNetworkReply::NoError) {
         // create json object from response
         QJsonObject data = QJsonDocument::fromJson(reply->readAll()).object();
 
+        qDebug() << "simplenote received answer";
+
         // parse json data
         onNote(reply->error(), data.empty() ? nullptr : new Note(data));
     } else
         onNote(reply->error(), nullptr);
-
-    // disconnect the finish signal to avoid double-reading
-    disconnect(mNetworkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(noteRequestFinished(QNetworkReply*)));
 
     // clean up
     reply->deleteLater();
@@ -128,7 +133,7 @@ void SimplenoteSync::updateNote(const Note& n) {
     request.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/x-www-form-urlencoded");
 
     // get note JSON dump
-    QByteArray json = noteCopy.jsonDump(true);
+    QByteArray json = noteCopy.jsonDump(true).toJson();
 
     // start request
     mNetworkManager->post(request, json);
@@ -163,10 +168,12 @@ void SimplenoteSync::fetchNoteList() {
 void SimplenoteSync::noteListRequestFinished(QNetworkReply *reply) {
     // check whether any errors occured
     if(reply->error() == QNetworkReply::NoError) {
+        QString da= reply->readAll();
+        qDebug() << da;
         // create json object from response
-        QJsonObject data = QJsonDocument::fromJson(reply->readAll()).object();
+        QJsonObject data = QJsonDocument::fromJson(da.toUtf8()).object();
         // parse json data
-        onNoteList(reply->error(), parseJsonToNotelist(data));
+        onNoteList(reply->error(), Note::parseJsonToNotelist(data));
     } else
         onNoteList(reply->error(), nullptr);
 
@@ -175,21 +182,6 @@ void SimplenoteSync::noteListRequestFinished(QNetworkReply *reply) {
 
     // clean up
     reply->deleteLater();
-}
-
-QVector<Note*>* SimplenoteSync::parseJsonToNotelist(const QJsonObject& json) {
-    // initialise result data vector
-    QVector<Note*>* noteVector = new QVector<Note*>();
-
-    // access data array within json
-    QJsonArray notes = json.value("data").toArray();
-
-    // create a note object for each data array element
-    for(int i = 0; i < notes.size(); i++)
-        noteVector->push_back(new Note(notes.at(i)));
-
-    // return result
-    return noteVector;
 }
 
 QString SimplenoteSync::getToken() {

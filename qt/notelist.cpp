@@ -1,8 +1,14 @@
-#include "notelist.h"
+#include <QStack>
+#include <QTimer>
+#include <algorithm>
 
+#include <assert.h>
+
+#include "disksync.h"
+#include "notelist.h"
 #include "simplenotesync.h"
 
-NoteList::NoteList(const QString &user, const QString &password, QObject* parent) : QAbstractListModel(parent) {
+NoteList::NoteList(const QString &user, const QString &password, const QString& dataPath, QObject* parent) : QAbstractListModel(parent), mDataPath(dataPath) {
     // create a simplenote sync object; it is going to handle syncing with simplenote for us
     mSimplenoteSync = new SimplenoteSync(user, password, parent);
 
@@ -30,11 +36,8 @@ NoteList::NoteList(const QString &user, const QString &password, QObject* parent
  *
  */
 
-void NoteList::fetchNote(const QModelIndex &i) {
-    mSimplenoteSync->fetchNote(mNoteList.at(i.row()));
-}
-
 void NoteList::fetchNoteList() {
+    readFromDisk();
     mSimplenoteSync->fetchNoteList();
 }
 
@@ -46,6 +49,19 @@ void NoteList::trashNote(Note &n, bool trash) {
     mSimplenoteSync->trashNote(n, trash);
 }
 
+void NoteList::writeToDisk()
+{
+    DiskSync sync(mDataPath);
+    sync.saveToDisk(mNoteList);
+}
+
+void NoteList::readFromDisk()
+{
+    DiskSync sync(mDataPath);
+    // good coding
+    onSimplenoteListUpdate(QNetworkReply::NetworkError::NoError, sync.readFromDisk());
+}
+
 /*
  *
  *
@@ -54,6 +70,58 @@ void NoteList::trashNote(Note &n, bool trash) {
  *
  *
  */
+
+#include <QThread>
+
+void NoteList::fetchNote()
+{
+    if(!mCurrentlyFetchingNote && !mFetchStack.isEmpty()) {
+        // save state
+        mCurrentlyFetchingNote = true;
+
+        QString key = mFetchStack.top();
+
+        qDebug() << "notelist: fetching " << key;
+
+        // fetch next note
+        mSimplenoteSync->fetchNote(key);
+
+        mFetchStack.pop();
+
+        qDebug() << "remaining: " << mFetchStack.size();
+    }
+    else{
+        if(!mFetchStack.isEmpty())
+            qDebug() << "stack size: " << mFetchStack.size() << "currently fetching note: " << mCurrentlyFetchingNote;
+    }
+}
+
+
+
+void NoteList::fetchNote(int row) {
+    // check row ok
+    assert(row <= mNoteList.size() && row >= 0);
+    // fetch the note
+    fetchNote(mNoteList.at(row));
+}
+
+void NoteList::fetchNote(const Note &note)
+{
+    // check whether the stack already contains this note
+    if(!mFetchStack.contains(note.getKey())){
+        // push the note onto the stack
+        mFetchStack.push(note.getKey());
+        // fetch the note just pushed onto the stack
+        fetchNote();
+    }
+}
+
+void NoteList::fetchNote(const QModelIndex &i) {
+    // check index validity
+    assert(i.isValid());
+    // if the index is valid, begin fetching the note
+    fetchNote(i.row());
+}
 
 void NoteList::insertUpdatedNotes(QVector<Note*>* updatedList) {
     // for each note in the updated list, check whether we already have a (newer) version.
@@ -69,21 +137,25 @@ void NoteList::insertUpdatedNotes(QVector<Note*>* updatedList) {
             // notify the list of our plan
             beginInsertRows(QModelIndex(), mNoteList.size(), mNoteList.size() + 1);
             // add note
-            mNoteList.push_back(**it);
+            mNoteList.append(**it);
+            // fetch content if it was not loaded
+            if(!(*it)->contentHasBeenFetched())
+                fetchNote(mNoteList.last());
             // add process finished
             endInsertRows();
         }
-        // if it exists, we check the modifyDate to decide whether or not to update it
+        // if it exists, we check the version to decide whether or not to update it
         else {
-
+            if((*it)->getVersion() > result->getVersion())
+                fetchNote(findNote(currentNoteKey));
         }
     }
-    delete updatedList;
+    //delete updatedList;
 }
 
 int NoteList::findNote(const QString &key) {
     // find the note
-    auto keyPos = std::find_if(mNoteList.begin(), mNoteList.end(), [key] (Note a) -> bool { return a.getKey() == key; });
+    auto keyPos = std::find_if(mNoteList.begin(), mNoteList.end(), [key] (const Note& a) -> bool { return a.getKey() == key; });
 
     // key not found?
     if(keyPos == mNoteList.end())
@@ -101,8 +173,8 @@ int NoteList::findNote(const QString &key) {
  *
  */
 
-void NoteList::onSimplenoteAuthentication(QNetworkReply::NetworkError) {
-
+void NoteList::onSimplenoteAuthentication(QNetworkReply::NetworkError err) {
+    emit onAuthentication(err);
 }
 
 void NoteList::onSimplenoteListUpdate(QNetworkReply::NetworkError, QVector<Note*>* noteList) {
@@ -112,6 +184,7 @@ void NoteList::onSimplenoteListUpdate(QNetworkReply::NetworkError, QVector<Note*
 }
 
 void NoteList::onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note) {
+    qDebug() << "note " << (note ? "" : "in") << "valid";
     // abort if the note is invalid
     if(!note) return;
 
@@ -121,11 +194,17 @@ void NoteList::onSimplenoteNoteFetched(QNetworkReply::NetworkError, Note* note) 
     // update our data store
     mNoteList.replace(notePosition, *note);
 
-    // _really_ update the row text
+    // update the row text
     dataChanged(index(notePosition, 0, QModelIndex()), index(notePosition, 0, QModelIndex()));
 
     // call note fetched to signal the content update
     emit noteFetched(*note);
+
+    // set state update
+    mCurrentlyFetchingNote = false;
+
+    // see if we need to fetch another note
+    fetchNote();
 }
 
 void NoteList::onNoteClicked(QModelIndex index) {

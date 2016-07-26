@@ -21,16 +21,14 @@ public:
     explicit MainWindow(QWidget *parent = 0);
 
     ~MainWindow();
-private slots:
+private slots://note stuff
     void onAuthentication(QNetworkReply::NetworkError);
     void onNoteFetched(const Note& note);
 
 private slots://ui callbacks
-    void on_pushButton_clicked();
     void on_actionSync_up_triggered();
     void onNoteClicked(QModelIndex index);
     void on_actionDelete_triggered();
-
 
     /**
      * @brief onTrashNote Call to move the current note to the trash
@@ -43,7 +41,10 @@ private slots://ui callbacks
      */
     void on_actionToggle_Showing_Trash_triggered(bool enable);
 
-private:
+private://functions
+    void closeEvent(QCloseEvent *bar) override;
+
+private://members
     NoteList* mNoteList;
     TrashFilterProxyModel* mTrashFilterProxyModel;
     Ui::MainWindow *ui;
