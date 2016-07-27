@@ -8,9 +8,9 @@
 #include "notelist.h"
 #include "simplenotesync.h"
 
-NoteList::NoteList(const QString &user, const QString &password, const QString& dataPath, QObject* parent) : QAbstractListModel(parent), mDataPath(dataPath) {
+NoteList::NoteList(QObject* parent) : QAbstractListModel(parent) {
     // create a simplenote sync object; it is going to handle syncing with simplenote for us
-    mSimplenoteSync = new SimplenoteSync(user, password, parent);
+    mSimplenoteSync = new SimplenoteSync(parent);
 
     // connect to the simplenote auth finish signal
     connect(mSimplenoteSync, SIGNAL(onAuthentication(QNetworkReply::NetworkError)),
@@ -51,15 +51,12 @@ void NoteList::trashNote(Note &n, bool trash) {
 
 void NoteList::writeToDisk()
 {
-    DiskSync sync(mDataPath);
-    sync.saveToDisk(mNoteList);
+    DiskSync::saveToDisk(mNoteList);
 }
 
 void NoteList::readFromDisk()
 {
-    DiskSync sync(mDataPath);
-    // good coding
-    onSimplenoteListUpdate(QNetworkReply::NetworkError::NoError, sync.readFromDisk());
+    onSimplenoteListUpdate(QNetworkReply::NetworkError::NoError, DiskSync::readFromDisk());
 }
 
 /*

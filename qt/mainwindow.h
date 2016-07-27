@@ -41,6 +41,10 @@ private slots://ui callbacks
      */
     void on_actionToggle_Showing_Trash_triggered(bool enable);
 
+    void on_actionAbout_triggered();
+
+    void on_actionSettings_triggered();
+
 private://functions
     void closeEvent(QCloseEvent *bar) override;
 

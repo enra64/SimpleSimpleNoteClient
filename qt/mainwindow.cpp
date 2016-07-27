@@ -3,23 +3,28 @@
 #include "ui_mainwindow.h"
 
 #include <QCloseEvent>
+#include <QMessageBox>
 #include <QModelIndex>
 
 #include "notelist.h"
 #include "note.h"
 #include "trashfilterproxymodel.h"
+#include "settingsdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    // create a new notelist
-    mNoteList = new NoteList("***REMOVED***",
-                             "***REMOVED***",
-                             "/home/arne/test.json", this);
+    // set values to enable default constructor for QSettings
+    QCoreApplication::setOrganizationName("oerntec productions");
+    QCoreApplication::setOrganizationDomain("github.com/enra64");
+    QCoreApplication::setApplicationName("SimpleSimpleNoteSync");
 
-    //
+    // create a new notelist
+    mNoteList = new NoteList(this);
+
+    // create a trash filter proxy model
     mTrashFilterProxyModel = new TrashFilterProxyModel(this);
 
     // set our notelist as proxy source
@@ -101,4 +106,15 @@ void MainWindow::on_actionDelete_triggered()
         mNoteList->trashNote(*mCurrentEditNote);
 }
 
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox msgBox;
+    msgBox.setText("This application was written by enra64 as an exercise in c++/qt. The source code can be seen at https://github.com/enra64/SimpleSimpleNoteClient.");
+    msgBox.exec();
+}
 
+void MainWindow::on_actionSettings_triggered()
+{
+    SettingsDialog dialog;
+    dialog.exec();
+}

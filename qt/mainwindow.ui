@@ -56,8 +56,16 @@
     </property>
     <addaction name="actionToggle_Showing_Trash"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionSettings"/>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuNote"/>
    <addaction name="menuView"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -90,6 +98,16 @@
    </property>
    <property name="text">
     <string>Toggle Showing Trash</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

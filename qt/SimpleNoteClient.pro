@@ -18,13 +18,16 @@ SOURCES += main.cpp\
     simplenotesync.cpp \
     notelist.cpp \
     trashfilterproxymodel.cpp \
-    disksync.cpp
+    disksync.cpp \
+    settingsdialog.cpp
 
 HEADERS  += mainwindow.h \
     note.h \
     simplenotesync.h \
     notelist.h \
     trashfilterproxymodel.h \
-    disksync.h
+    disksync.h \
+    settingsdialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    settingsdialog.ui

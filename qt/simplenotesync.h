@@ -27,6 +27,11 @@ public:
      */
     explicit SimplenoteSync(const QString &user, const QString &password, QObject *parent = 0);
 
+    /**
+     * @brief SimplenoteSync Create a new SimplenoteSync instance. It will try to get token and username from storage!
+     */
+    explicit SimplenoteSync(QObject *parent = 0);
+
     ~SimplenoteSync();
 
     /**
@@ -39,6 +44,12 @@ public:
      * @return current token
      */
     QString getToken();
+
+    /**
+     * @brief setToken set the token in use
+     * @param token new token
+     */
+    void setToken(const QString& token);
 
     void fetchNote(const Note &n);
     void fetchNote(const QString&key);

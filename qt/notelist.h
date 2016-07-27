@@ -15,7 +15,7 @@ public:
     // declare our proxy model as friend to be able to access the data
     friend class TrashFilterProxyModel;
 
-    NoteList(const QString &user, const QString &password, const QString& dataPath, QObject *parent = 0);
+    NoteList(QObject *parent = 0);
 
 
 
@@ -146,11 +146,6 @@ private://members
      * @brief mSimplenoteSync pointer to our simplenote sync object
      */
     SimplenoteSync* mSimplenoteSync = nullptr;
-
-    /**
-     * @brief mDataPath the path where disk storage for notes lies
-     */
-    QString mDataPath;
 };
 
 #endif // NOTELIST_H

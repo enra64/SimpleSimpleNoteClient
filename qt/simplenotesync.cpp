@@ -2,6 +2,7 @@
 
 #include <QEventLoop>
 #include <QJsonDocument>
+#include <QSettings>
 
 #include <assert.h>
 #include "note.h"
@@ -14,13 +15,24 @@ SimplenoteSync::SimplenoteSync(const QString& user, const QString& password, QOb
     mNetworkManager = new QNetworkAccessManager(this);
 }
 
+SimplenoteSync::SimplenoteSync(QObject *parent) : QObject(parent)
+{
+    //retrieve username
+    QSettings settings;
+    mUser = settings.value("user").toString();
+
+    // retrieve token
+    mToken = settings.value("token").toString();
+
+    // instantiate nam
+    mNetworkManager = new QNetworkAccessManager(this);
+}
+
 SimplenoteSync::~SimplenoteSync() {
     delete mNetworkManager;
 }
 
 void SimplenoteSync::authenticate() {
-    mToken = "D45F9AC2493DE08C68C9C79A90570E735688EEC7C96390EF4C7882DC58F047F7";
-
     // abort if token exists
     if(!mToken.isEmpty())
         return;
@@ -190,6 +202,11 @@ QString SimplenoteSync::getToken() {
 
     // after the authenticate() call we should have a token
     return mToken;
+}
+
+void SimplenoteSync::setToken(const QString &token)
+{
+    mToken = token;
 }
 
 void SimplenoteSync::fetchNote(const Note & n) {

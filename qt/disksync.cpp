@@ -7,12 +7,9 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QJsonArray>
+#include <QSettings>
 
 #include <assert.h>
-
-DiskSync::DiskSync(const QString &path) : mPath(path){
-
-}
 
 void DiskSync::saveToDisk(const QVector<Note> &noteList)
 {
@@ -27,30 +24,24 @@ void DiskSync::saveToDisk(const QVector<Note> &noteList)
     wrapper.insert("count", QJsonValue(noteList.length()));
     wrapper.insert("data", data);
 
-    // create output file
-    QFile file(mPath);
+    // save into global settings storage
+    QSettings settings;
 
-    if(file.open(QIODevice::WriteOnly)){
-        file.write(QJsonDocument(wrapper).toJson());
-    }
-    else
-        assert(false && "could not open file");
-
+    // qjsonarrays are directly saveable
+    settings.setValue("data", QJsonDocument(wrapper).toJson());
 }
 
 QVector<Note*>* DiskSync::readFromDisk()
 {
-    // create file handle
-    QFile inFile(mPath);
+    // qsettings access
+    QSettings settings;
 
-    // open file
-    inFile.open(QIODevice::ReadOnly);
+    // load from global settings storage
+    //QJsonDocument obj = QJsonDocument::fromVariant(settings.value("data"));
 
-    // parse json from file
-    QString dataS = inFile.readAll();
-    qDebug() << dataS;
-    QJsonObject data = QJsonDocument::fromJson(dataS.toUtf8()).object();
+    QByteArray var = settings.value("data").toByteArray();
+
 
     // return list of notes
-    return Note::parseJsonToNotelist(data);
+    return Note::parseJsonToNotelist(QJsonDocument::fromJson(var).object());
 }
